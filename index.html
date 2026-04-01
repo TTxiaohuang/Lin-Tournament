@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎤 林家谦歌曲锦标赛</title>
+    <style>
+        :root {
+            --primary-color: #ffffff;
+            --accent-color: #ffcc00;
+            --overlay-bg: rgba(255, 255, 255, 0.15);
+            --blur-val: 12px;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 网页背景图片：请确保根目录有 background.jpg */
+            background: url('background.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            overflow-x: hidden;
+        }
+
+        /* 全局毛玻璃遮罩 */
+        .glass-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(var(--blur-val));
+            -webkit-backdrop-filter: blur(var(--blur-val));
+            z-index: -1;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 800px;
+            background: var(--overlay-bg);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            color: white;
+            display: none; /* 初始隐藏，等点击开始后显示 */
+        }
+
+        /* 入场封面样式 */
+        #start-screen {
+            text-align: center;
+            color: white;
+            z-index: 10;
+        }
+
+        .start-btn {
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            background: #ffffff;
+            color: #333;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        .start-btn:hover { transform: scale(1.1); background: var(--accent-color); }
+
+        .header-info { margin-bottom: 20px; }
+        .round-title { font-size: 1rem; color: #ddd; text-transform: uppercase; letter-spacing: 2px; }
+        .zone-title { font-size: 1.4rem; margin: 10px 0; color: var(--accent-color); }
+        .remark-text {
+            font-size: 0.95rem; line-height: 1.6; background: rgba(0,0,0,0.2);
+            padding: 15px; border-radius: 12px; margin-bottom: 25px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* 核心卡片布局：适配手机 */
+        .cards-container {
+            display: flex; gap: 20px; justify-content: center;
+        }
+
+        @media (max-width: 600px) {
+            .cards-container { flex-direction: column; }
+        }
+
+        .song-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .song-card:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.2); }
+
+        .album-cover {
+            width: 100%; max-width: 220px; aspect-ratio: 1/1;
+            object-fit: cover; border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            margin-bottom: 15px;
+        }
+
+        .song-name { font-size: 1.2rem; font-weight: bold; }
+
+        .result-screen { display: none; text-align: center; }
+        .champion-cover { width: 250px; height: 250px; border-radius: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="glass-overlay"></div>
+
+<audio id="main-bgm" loop>
+    <source src="bgm.mp3" type="audio/mpeg">
+</audio>
+
+<div id="start-screen">
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">林家谦歌曲锦标赛</h1>
+    <p style="margin-bottom: 40px; opacity: 0.8;">32首心头好，最终谁会留在你的“一人之境”？</p>
+    <button class="start-btn" onclick="startTournament()">开始比赛</button>
+</div>
+
+<div class="container" id="game-container">
+    <div class="header-info">
+        <div class="round-title" id="round-display">LOADING...</div>
+        <div id="zone-display" class="zone-title">赛区加载中</div>
+    </div>
+    <div id="remark-display" class="remark-text">开场白加载中...</div>
+
+    <div class="cards-container">
+        <div class="song-card" onclick="selectSong('A')">
+            <img id="cover-a" class="album-cover" src="" alt="A">
+            <div class="song-name" id="name-a">歌曲A</div>
+        </div>
+        <div class="song-card" onclick="selectSong('B')">
+            <img id="cover-b" class="album-cover" src="" alt="B">
+            <div class="song-name" id="name-b">歌曲B</div>
+        </div>
+    </div>
+</div>
+
+<div class="container result-screen" id="result-container">
+    <h2 style="color: var(--accent-color);">🏆 终极冠军 🏆</h2>
+    <img id="champion-cover" class="champion-cover" src="" alt="Champion">
+    <div class="song-name" id="champion-name" style="font-size: 2rem;">歌曲名</div>
+    <br>
+    <button class="start-btn" style="font-size: 1rem; padding: 10px 30px;" onclick="location.reload()">重新开启对决</button>
+</div>
+
+<script>
+    const initialData = [
+        { zone: "第一赛区：流行之巅的抉择", remark: "林家谦最广为人知的两张名片。是坚守那份‘一个人原来都可以尽兴’的自足，还是在‘反覆错爱之旅’中期待下一位前度？孤独的狂欢还是爱情的轮回，请抉择！", songA: "一人之境", songB: "下一位前度" },
+        { zone: "第一赛区：流行之巅的抉择", remark: "黄伟文与林夕的词作巅峰对撞。一边是想回到过去‘吞了喜欢你’的强烈执念，一边是‘未能共享一叶舟’的淡然释怀。哪一种遗憾，让你更无法自拔？", songA: "时光倒流一句话", songB: "某种老朋友" },
+        { zone: "第二赛区：四季流转的映画", remark: "最灿烂的生命力对决！是春日里‘忙着发光不要被阴影掩盖’的乐观，还是盛夏中‘暑天越冷越对’的叛逆？你是春天的信徒，还是夏天的孩子？", songA: "春日部", songB: "夏日之子" },
+        { zone: "第二赛区：四季流转的映画", remark: "气温骤降时的耳边呢喃。是‘枯藤老树昏鸦’的古典萧瑟，还是‘漫天雪中赔过罪’的现代寂寥？在冷色调的曲风里，哪一首最能温暖你？", songA: "秋叶缘", songB: "冬季限定" },
+        { zone: "第二赛区：四季流转的映画", remark: "关于‘初夏’的纯爱分镜。是四月里‘从未牵手的章节’的朦胧心事，还是盛夏祭典中‘雪糕杯美学’的定格感动？选出你心中的那首青春物语。", songA: "四月物语", songB: "夏之风物诗" },
+        { zone: "第三赛区：众生相与处世法", remark: "‘好人’的双重心理审问。是因被背叛而产生的‘吝啬信任’，还是因面对灵魂考验时的‘不敢变坏’？这场关于良心的博弈，谁更触动你？", songA: "万一你是个好人", songB: "怪我只敢做好人" },
+        { zone: "第三赛区：众生相与处世法", remark: "逃离现实的两种药剂。是糊涂一点、‘随心写结尾’的氧气，还是爬进时间沙漏、‘忘记俗世争斗’的奇幻。今晚，你准备服用哪一颗魔药？", songA: "神奇的糊涂魔药", songB: "特伦斯梦游仙境" },
+        { zone: "第三赛区：众生相与处世法", remark: "出世与入世的哲学思考。是看透轮回、‘回望遗憾中普渡’的厚重，还是沉浸式体验、‘见步行步感觉着’的轻快。哪一种活法，是你追求的彼岸？", songA: "普渡众生", songB: "喃呒师感官漫游" },
+        { zone: "第四赛区：怪癖与治愈的角落", remark: "最真实的林氏生活侧写。是极致挑剔、‘优雅地折堕’的洁癖，还是彻底躺平、‘化作世界滋养’的安然。面对这份‘不合群’，你选哪一边？", songA: "难道喜欢处女座", songB: "小林不动产" },
+        { zone: "第四赛区：怪癖与治愈的角落", remark: "最温柔的撑腰。是渴望‘等待你能明白的耳’的倾听，还是坚信‘种子已在发芽’的进取。在疲惫的时刻，哪一种鼓励能让你继续前行？", songA: "有你听我的故事", songB: "just carry on" },
+        { zone: "第四赛区：怪癖与治愈的角落", remark: "深夜的自问自答。是拼命记取‘曾有一份爱存在’的微光，还是接受‘骤变几多个没终于答案’的虚无。关于过去，你会选择记住还是放手？", songA: "记得", songB: "无答案" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "一场没有终点的航行。是列车上‘瞬息间说你好吗’的相遇之喜，还是谢幕时‘为了来年安歌拼命无恙’的守望之情。人生的下一站，你与谁同行？", songA: "列车上对着坐的两个人", songB: "边一个发明了ENCORE" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin’" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "海与空的极致放逐。一边是悬停在半空、‘相信这一刹感觉’的瞬间，一边是流落到深海、‘放心漂到无人知晓海港’的永恒。你想向上飞升，还是向远漂流？", songA: "在空中的这一秒", songB: "流离者的海" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "关系中的‘连结’与‘屏蔽’。是‘你把我们的世界连成线’的双向奔赴，还是‘单剔隔绝我跟他’的无声断裂。最极致的温柔遇上最冷酷的隔离，你会投给哪一种真实？", songA: "你的世界", songB: "隔离" },
+        { zone: "最终赛区：极简的余韵", remark: "一切归于沉静。是‘平静拥抱怒与哀乐’的坚韧，还是‘归土归尘了了’的空灵。在音乐的尽头，哪一种声音能洗净你的尘埃？", songA: "听风", songB: "了了" }
+    ];
+
+    let currentMatches = [...initialData];
+    let nextRoundWinners = [];
+    let matchIndex = 0;
+    const roundsInfo = { 16: "32进16", 8: "16进8", 4: "8进4", 2: "半决赛", 1: "总决赛" };
+
+    function startTournament() {
+        // 1. 播放音乐 (由用户点击触发，合法)
+        document.getElementById('main-bgm').play();
+        // 2. 切换 UI
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-container').style.display = 'block';
+        // 3. 渲染第一组
+        renderMatch();
+    }
+
+    function renderMatch() {
+        const match = currentMatches[matchIndex];
+        const roundTitle = roundsInfo[currentMatches.length];
+        
+        document.getElementById('round-display').innerText = `${roundTitle} · 组别 ${matchIndex + 1} / ${currentMatches.length}`;
+        
+        if (currentMatches.length === 16) {
+            document.getElementById('zone-display').innerText = match.zone;
+            document.getElementById('remark-display').innerText = match.remark;
+            document.getElementById('zone-display').style.display = 'block';
+            document.getElementById('remark-display').style.display = 'block';
+        } else {
+            document.getElementById('zone-display').style.display = 'none';
+            document.getElementById('remark-display').style.display = 'none';
+        }
+
+        document.getElementById('name-a').innerText = match.songA;
+        document.getElementById('name-b').innerText = match.songB;
+        document.getElementById('cover-a').src = `covers/${match.songA}.jpg`;
+        document.getElementById('cover-b').src = `covers/${match.songB}.jpg`;
+    }
+
+    function selectSong(choice) {
+        const match = currentMatches[matchIndex];
+        const winner = (choice === 'A') ? match.songA : match.songB;
+        nextRoundWinners.push(winner);
+
+        matchIndex++;
+
+        if (matchIndex >= currentMatches.length) {
+            if (nextRoundWinners.length === 1) {
+                showChampion(nextRoundWinners[0]);
+                return;
+            }
+            currentMatches = [];
+            for (let i = 0; i < nextRoundWinners.length; i += 2) {
+                currentMatches.push({ songA: nextRoundWinners[i], songB: nextRoundWinners[i+1] });
+            }
+            nextRoundWinners = [];
+            matchIndex = 0;
+        }
+        renderMatch();
+    }
+
+    function showChampion(songName) {
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('result-container').style.display = 'block';
+        document.getElementById('champion-name').innerText = `《${songName}》`;
+        document.getElementById('champion-cover').src = `covers/${songName}.jpg`;
+    }
+</script>
+
+</body>
+</html>
