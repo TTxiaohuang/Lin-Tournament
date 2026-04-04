@@ -8,18 +8,17 @@
         :root {
             --primary-color: #ffffff;
             --accent-color: #ffcc00;
-            --overlay-bg: rgba(255, 255, 255, 0.15);
+            --overlay-bg: rgba(0, 0, 0, 0.4); /* 加深遮罩，增强对比度 */
             --blur-val: 12px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* 锁死屏幕高度，禁止任何滚动 */
         body {
             margin: 0;
             padding: 0;
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            height: 100dvh; /* 使用动态视口高度，适配手机浏览器上下工具栏 */
+            height: 100dvh;
             width: 100vw;
             overflow: hidden; 
             display: flex;
@@ -32,26 +31,23 @@
         .glass-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.25);
             backdrop-filter: blur(var(--blur-val));
             -webkit-backdrop-filter: blur(var(--blur-val));
             z-index: -1;
         }
 
-        /* 核心 App 容器：强制 18:9 比例感，上下吸顶吸底 */
+        /* 核心 App 容器：智能适配不同屏幕比例 */
         .app-container {
             width: 100%;
-            /* 在电脑端限制宽度，维持手机 18:9 的瘦长比例 (50vh = 高度的一半) */
-            max-width: 50vh; 
+            max-width: 50vh; /* 在大屏幕上维持手机比例 */
             height: 100%; 
             display: none; 
             flex-direction: column;
-            justify-content: space-between; /* 关键：把文字推上去，卡片推下来 */
-            padding: 5vh 20px 4vh 20px; /* 上下留出安全距离 */
+            padding: 4vh 20px 3vh 20px;
             position: relative;
         }
 
-        /* 开始与结果屏幕的独立样式 */
         #start-screen, #result-container {
             display: flex;
             flex-direction: column;
@@ -67,70 +63,89 @@
 
         .start-btn {
             padding: 15px 40px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             background: #ffffff;
             color: #333;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
             transition: 0.3s;
             font-weight: bold;
         }
 
-        .start-btn:disabled {
-            background: #cccccc;
-            color: #666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
+        .start-btn:disabled { background: #666; color: #999; cursor: not-allowed; }
         .start-btn:not(:disabled):hover { transform: scale(1.05); background: var(--accent-color); }
 
-        /* 顶部文字区域 */
-        .top-section { text-align: center; }
-        .round-title { font-size: 0.9rem; color: #ddd; text-transform: uppercase; letter-spacing: 2px; }
-        .zone-title { font-size: 1.3rem; margin: 8px 0; color: var(--accent-color); font-weight: bold;}
-        .remark-text {
-            font-size: 0.9rem; line-height: 1.5; background: rgba(0,0,0,0.25);
-            padding: 12px; border-radius: 12px; margin-top: 15px;
-            border-left: 3px solid var(--accent-color); text-align: left;
+        /* 顶部文字区域：自动填充空白空间 */
+        .top-section { 
+            flex-grow: 1; /* 自动撑开，填补中间空白 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 让文字在垂直空间居中 */
+            text-align: center;
+            margin-bottom: 2vh;
         }
 
-        /* 底部卡片区域：强行左右排列 */
+        .round-title { font-size: 0.85rem; color: #ccc; letter-spacing: 2px; }
+        .zone-title { font-size: 1.25rem; margin: 10px 0; color: var(--accent-color); font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        
+        .remark-text {
+            font-size: 0.95rem; 
+            line-height: 1.6; 
+            color: #ffffff; /* 强制改为白色 */
+            background: rgba(0, 0, 0, 0.45); /* 稍微加深的半透明底色 */
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-top: 10px;
+            border-left: 4px solid var(--accent-color); 
+            text-align: left;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* 文字阴影增强可读性 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* 底部卡片区域：锁定比例 */
         .cards-container { 
             display: flex; 
-            flex-direction: row; /* 强制水平排列 */
-            gap: 15px; 
+            flex-direction: row; 
+            gap: 12px; 
             width: 100%; 
+            padding-bottom: 10px;
         }
 
         .song-card {
-            flex: 1; /* 左右各占 50% */
-            background: rgba(255, 255, 255, 0.1); 
+            flex: 1; 
+            background: rgba(255, 255, 255, 0.12); 
             border-radius: 16px;
-            padding: 12px; 
+            padding: 10px; 
             cursor: pointer; 
             transition: 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex; flex-direction: column; align-items: center; text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .song-card:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.25); }
+        .song-card:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.2); }
 
         .album-cover {
             width: 100%; 
-            aspect-ratio: 1/1; /* 保持正方形 */
+            aspect-ratio: 1/1; 
             object-fit: cover; 
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
-            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4); 
+            margin-bottom: 8px;
         }
 
-        .song-name { font-size: 1.05rem; font-weight: bold; color: white;}
+        .song-name { 
+            font-size: 0.95rem; 
+            font-weight: bold; 
+            color: white; 
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 歌名太长时自动换行，最多显示两行 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
 
-        .champion-cover { width: 60vw; max-width: 250px; aspect-ratio: 1/1; border-radius: 20px; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .champion-cover { width: 65vw; max-width: 250px; aspect-ratio: 1/1; border-radius: 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -142,8 +157,8 @@
 </audio>
 
 <div id="start-screen">
-    <h1 style="font-size: 2.2rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">林家谦锦标赛</h1>
-    <p style="margin-bottom: 40px; opacity: 0.9; font-size: 0.9rem;">32首心头好，最终谁会留在你的“一人之境”？</p>
+    <h1 style="font-size: 2rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">林家谦锦标赛</h1>
+    <p style="margin-bottom: 30px; opacity: 0.8; font-size: 0.85rem;">32首心头好，最终谁会留在你的“一人之境”？</p>
     <button class="start-btn" id="start-btn" onclick="startTournament()" disabled>资源加载中...</button>
 </div>
 
@@ -167,14 +182,14 @@
 </div>
 
 <div id="result-container" style="display: none;">
-    <h2 style="color: var(--accent-color); margin-top: 0; font-size: 1.8rem;">🏆 你的终极冠军 🏆</h2>
+    <h2 style="color: var(--accent-color); margin-top: 0; font-size: 1.6rem;">🏆 你的终极冠军 🏆</h2>
     <img id="champion-cover" class="champion-cover" src="" alt="Champion">
-    <div class="song-name" id="champion-name" style="font-size: 1.6rem; margin-bottom: 15px;">歌曲名</div>
+    <div class="song-name" id="champion-name" style="font-size: 1.5rem; margin-bottom: 15px;">歌曲名</div>
     
-    <div id="ranking-list" style="width: 100%; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: left; color: #ddd; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); font-size: 0.9rem; margin-bottom: 20px;">
+    <div id="ranking-list" style="width: 100%; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; text-align: left; color: #eee; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); font-size: 0.85rem; margin-bottom: 20px;">
         </div>
 
-    <button class="start-btn" style="font-size: 1rem; padding: 12px 30px;" onclick="location.reload()">重新开启比赛</button>
+    <button class="start-btn" style="font-size: 1rem; padding: 12px 30px;" onclick="location.reload()">重新开始比赛</button>
 </div>
 
 <script>
@@ -191,55 +206,42 @@
         { zone: "第四赛区：怪癖与治愈的角落", remark: "最温柔的撑腰。是渴望‘等待你能明白的耳’的倾听，还是坚信‘种子已在发芽’的进取。在疲惫的时刻，哪一种鼓励能让你继续前行？", songA: "有你听我的故事", songB: "just carry on" },
         { zone: "第四赛区：怪癖与治愈的角落", remark: "深夜的自问自答。是拼命记取‘曾有一份爱存在’的微光，还是接受‘骤变几多个没终于答案’的虚无。关于过去，你会选择记住还是放手？", songA: "记得", songB: "无答案" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "一场没有终点的航行。是列车上‘瞬息间说你好吗’的相遇之喜，还是谢幕时‘为了来年安歌拼命无恙’的守望之情。人生的下一站，你与谁同行？", songA: "列车上对着坐的两个人", songB: "边一个发明了ENCORE" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin’" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin'" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "海与空的极致放逐。一边是悬停在半空、‘相信这一刹感觉’的瞬间，一边是流落到深海、‘放心漂到无人知晓海港’的永恒。你想向上飞升，还是向远漂流？", songA: "在空中的这一秒", songB: "流离者的海" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "关系中的‘连结’与‘屏蔽’。是‘你把我们的世界连成线’的双向奔赴，还是‘单剔隔绝我跟他’的无声断裂。最极致的温柔遇上最冷酷的隔离，你会投给哪一种真实？", songA: "你的世界", songB: "隔离" },
         { zone: "最终赛区：极简的余韵", remark: "一切归于沉静。是‘平静拥抱怒与哀乐’的坚韧，还是‘归土归尘了了’的空灵。在音乐的尽头，哪一种声音能洗净你的尘埃？", songA: "听风", songB: "了了" }
     ];
 
-    // ================== 核心升级：严格资源加载控制 ==================
     window.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.getElementById('start-btn');
         let isReady = false;
 
-        // 统一放行函数
         const setReady = () => {
             if (isReady) return;
             isReady = true;
             startBtn.innerText = "开始对决";
             startBtn.disabled = false;
-            // 步骤 3：背景和音乐都OK了，开始后台偷摸预加载所有专辑封面
             preloadAllCovers(); 
         };
 
-        // 步骤 1：强制优先下载背景图
         const bgImg = new Image();
         bgImg.src = 'background.jpeg';
         bgImg.onload = () => {
-            // 步骤 2：背景图下载完后，命令浏览器开始下载音乐
             const bgm = document.getElementById('main-bgm');
             bgm.preload = "auto";
             bgm.load();
-
-            // 监听音频，只要缓冲到能播一点点，就激活按钮
             bgm.addEventListener('canplaythrough', setReady, { once: true });
-            
-            // 兜底：万一网络卡，或者个别手机限制预加载，3秒后强制激活按钮
             setTimeout(setReady, 3000);
         };
-        
-        // 兜底：如果你的 background.jpeg 路径不对，为了不卡死，也强制放行
         bgImg.onerror = setReady;
     });
 
-    // 预加载封面函数：把图片写入浏览器内存
     function preloadAllCovers() {
         initialData.forEach(match => {
             const imgA = new Image(); imgA.src = `covers/${match.songA}.jpg`;
             const imgB = new Image(); imgB.src = `covers/${match.songB}.jpg`;
         });
     }
-    // ===============================================================
 
     let currentMatches = [...initialData];
     let nextRoundWinners = [];
@@ -247,7 +249,7 @@
     const roundsInfo = { 16: "32进16", 8: "16进8", 4: "8进4", 2: "半决赛", 1: "总决赛" };
 
     function startTournament() {
-        document.getElementById('main-bgm').play().catch(e => console.log("等待用户交互"));
+        document.getElementById('main-bgm').play().catch(e => console.log("等待交互"));
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
         renderMatch();
@@ -307,7 +309,6 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ songName: songName })
             });
-            if (!response.ok) throw new Error('网络请求失败');
             const topSongs = await response.json();
             
             let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网热度榜 🔥</h3>";
@@ -321,8 +322,8 @@
             });
             html += "</ul>";
             rankingDiv.innerHTML = html;
-        } catch (error) {
-            rankingDiv.innerHTML = "<div style='text-align:center; color:#e74c3c;'>⚠️ 排行榜当前为离线模式，发布后即可生效</div>";
+        } catch (e) {
+            rankingDiv.innerHTML = "<div style='text-align:center; color:#e74c3c;'>⚠️ 离线模式：发布后开启全网排名</div>";
         }
     }
 </script>
