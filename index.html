@@ -169,6 +169,19 @@
     let nextRoundWinners = [];
     let matchIndex = 0;
     const roundsInfo = { 16: "32进16", 8: "16进8", 4: "8进4", 2: "半决赛", 1: "总决赛" };
+    // === 新增：图片预加载功能 ===
+    function preloadAllCovers() {
+        initialData.forEach(match => {
+            // 在后台悄悄创建图片对象，迫使浏览器提前下载
+            const imgA = new Image();
+            imgA.src = `covers/${match.songA}.jpg`;
+            const imgB = new Image();
+            imgB.src = `covers/${match.songB}.jpg`;
+        });
+    }
+    // 网页只要一打开，立刻开始后台静默下载
+    preloadAllCovers();
+    // ============================
 
     function startTournament() {
         document.getElementById('main-bgm').play().catch(e => console.log("等待用户交互自动播放"));
