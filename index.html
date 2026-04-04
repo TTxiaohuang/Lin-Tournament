@@ -22,13 +22,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* 网页背景图片：请确保根目录有 background.jpg */
+            /* 背景图：确保你的根目录有 background.jpeg */
             background: url('background.jpeg') no-repeat center center fixed;
             background-size: cover;
             overflow-x: hidden;
         }
 
-        /* 全局毛玻璃遮罩 */
         .glass-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -47,15 +46,10 @@
             padding: 25px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             color: white;
-            display: none; /* 初始隐藏，等点击开始后显示 */
+            display: none; 
         }
 
-        /* 入场封面样式 */
-        #start-screen {
-            text-align: center;
-            color: white;
-            z-index: 10;
-        }
+        #start-screen { text-align: center; color: white; z-index: 10; }
 
         .start-btn {
             padding: 15px 50px;
@@ -72,33 +66,24 @@
 
         .start-btn:hover { transform: scale(1.1); background: var(--accent-color); }
 
-        .header-info { margin-bottom: 20px; }
+        .header-info { margin-bottom: 20px; text-align: center; }
         .round-title { font-size: 1rem; color: #ddd; text-transform: uppercase; letter-spacing: 2px; }
         .zone-title { font-size: 1.4rem; margin: 10px 0; color: var(--accent-color); }
         .remark-text {
             font-size: 0.95rem; line-height: 1.6; background: rgba(0,0,0,0.2);
             padding: 15px; border-radius: 12px; margin-bottom: 25px;
-            border-left: 4px solid var(--accent-color);
+            border-left: 4px solid var(--accent-color); text-align: center;
         }
 
-        /* 核心卡片布局：适配手机 */
-        .cards-container {
-            display: flex; gap: 20px; justify-content: center;
-        }
+        .cards-container { display: flex; gap: 20px; justify-content: center; }
 
-        @media (max-width: 600px) {
-            .cards-container { flex-direction: column; }
-        }
+        @media (max-width: 600px) { .cards-container { flex-direction: column; } }
 
         .song-card {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 18px;
-            padding: 20px;
-            cursor: pointer;
-            transition: 0.3s;
+            flex: 1; background: rgba(255, 255, 255, 0.1); border-radius: 18px;
+            padding: 20px; cursor: pointer; transition: 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
         }
 
         .song-card:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.2); }
@@ -106,14 +91,13 @@
         .album-cover {
             width: 100%; max-width: 220px; aspect-ratio: 1/1;
             object-fit: cover; border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-            margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4); margin-bottom: 15px;
         }
 
         .song-name { font-size: 1.2rem; font-weight: bold; }
 
         .result-screen { display: none; text-align: center; }
-        .champion-cover { width: 250px; height: 250px; border-radius: 20px; margin: 20px 0; }
+        .champion-cover { width: 250px; height: 250px; border-radius: 20px; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -125,9 +109,9 @@
 </audio>
 
 <div id="start-screen">
-    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">林家谦歌曲锦标赛</h1>
-    <p style="margin-bottom: 40px; opacity: 0.8;">32首心头好，最终谁会留在你的“一人之境”？</p>
-    <button class="start-btn" onclick="startTournament()">开始比赛</button>
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">林家谦歌曲锦标赛</h1>
+    <p style="margin-bottom: 40px; opacity: 0.9;">32首心头好，最终谁会留在你的“一人之境”？</p>
+    <button class="start-btn" onclick="startTournament()">开始对决</button>
 </div>
 
 <div class="container" id="game-container">
@@ -150,11 +134,15 @@
 </div>
 
 <div class="container result-screen" id="result-container">
-    <h2 style="color: var(--accent-color);">🏆 终极冠军 🏆</h2>
+    <h2 style="color: var(--accent-color); margin-top: 0;">🏆 你的终极冠军 🏆</h2>
     <img id="champion-cover" class="champion-cover" src="" alt="Champion">
-    <div class="song-name" id="champion-name" style="font-size: 2rem;">歌曲名</div>
+    <div class="song-name" id="champion-name" style="font-size: 2rem; margin-bottom: 20px;">歌曲名</div>
+    
+    <div id="ranking-list" style="margin: 20px auto; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; max-width: 400px; text-align: left; color: #ddd; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
+        </div>
+
     <br>
-    <button class="start-btn" style="font-size: 1rem; padding: 10px 30px;" onclick="location.reload()">重新开启对决</button>
+    <button class="start-btn" style="font-size: 1rem; padding: 10px 30px;" onclick="location.reload()">重新开启比赛</button>
 </div>
 
 <script>
@@ -171,7 +159,7 @@
         { zone: "第四赛区：怪癖与治愈的角落", remark: "最温柔的撑腰。是渴望‘等待你能明白的耳’的倾听，还是坚信‘种子已在发芽’的进取。在疲惫的时刻，哪一种鼓励能让你继续前行？", songA: "有你听我的故事", songB: "just carry on" },
         { zone: "第四赛区：怪癖与治愈的角落", remark: "深夜的自问自答。是拼命记取‘曾有一份爱存在’的微光，还是接受‘骤变几多个没终于答案’的虚无。关于过去，你会选择记住还是放手？", songA: "记得", songB: "无答案" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "一场没有终点的航行。是列车上‘瞬息间说你好吗’的相遇之喜，还是谢幕时‘为了来年安歌拼命无恙’的守望之情。人生的下一站，你与谁同行？", songA: "列车上对着坐的两个人", songB: "边一个发明了ENCORE" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin’" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin'" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "海与空的极致放逐。一边是悬停在半空、‘相信这一刹感觉’的瞬间，一边是流落到深海、‘放心漂到无人知晓海港’的永恒。你想向上飞升，还是向远漂流？", songA: "在空中的这一秒", songB: "流离者的海" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "关系中的‘连结’与‘屏蔽’。是‘你把我们的世界连成线’的双向奔赴，还是‘单剔隔绝我跟他’的无声断裂。最极致的温柔遇上最冷酷的隔离，你会投给哪一种真实？", songA: "你的世界", songB: "隔离" },
         { zone: "最终赛区：极简的余韵", remark: "一切归于沉静。是‘平静拥抱怒与哀乐’的坚韧，还是‘归土归尘了了’的空灵。在音乐的尽头，哪一种声音能洗净你的尘埃？", songA: "听风", songB: "了了" }
@@ -183,12 +171,9 @@
     const roundsInfo = { 16: "32进16", 8: "16进8", 4: "8进4", 2: "半决赛", 1: "总决赛" };
 
     function startTournament() {
-        // 1. 播放音乐 (由用户点击触发，合法)
-        document.getElementById('main-bgm').play();
-        // 2. 切换 UI
+        document.getElementById('main-bgm').play().catch(e => console.log("等待用户交互自动播放"));
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'block';
-        // 3. 渲染第一组
         renderMatch();
     }
 
@@ -218,7 +203,6 @@
         const match = currentMatches[matchIndex];
         const winner = (choice === 'A') ? match.songA : match.songB;
         nextRoundWinners.push(winner);
-
         matchIndex++;
 
         if (matchIndex >= currentMatches.length) {
@@ -236,11 +220,52 @@
         renderMatch();
     }
 
+    // 核心修改点：对接 Vercel API
     function showChampion(songName) {
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('result-container').style.display = 'block';
         document.getElementById('champion-name').innerText = `《${songName}》`;
         document.getElementById('champion-cover').src = `covers/${songName}.jpg`;
+
+        // 触发数据库记账和拉取榜单
+        submitAndShowRanking(songName);
+    }
+
+    async function submitAndShowRanking(songName) {
+        const rankingDiv = document.getElementById('ranking-list');
+        rankingDiv.innerHTML = "<div style='text-align:center;'>正在同步全网夺冠数据... ⏳</div>";
+
+        try {
+            // 向 Vercel 云端的 vote.js 接口发送 POST 请求
+            const response = await fetch('/api/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ songName: songName })
+            });
+
+            if (!response.ok) throw new Error('网络请求失败');
+            const topSongs = await response.json();
+
+            // 拼装前五名排行榜 HTML
+            let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网夺冠热度榜 🔥</h3>";
+            html += "<ul style='list-style:none; padding:0; margin:0;'>";
+            
+            topSongs.forEach((song, index) => {
+                let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '✨';
+                html += `
+                    <li style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        <span>${medal} 《${song.songName}》</span>
+                        <span style="font-weight: bold; color: var(--accent-color);">${song.votes} 次</span>
+                    </li>`;
+            });
+            html += "</ul>";
+            rankingDiv.innerHTML = html;
+
+        } catch (error) {
+            console.error("提交失败:", error);
+            // 贴心提示：如果用户在本地双击打开网页，会显示这条提示（因为本地没有服务器运行接口）
+            rankingDiv.innerHTML = "<div style='text-align:center; color:#e74c3c; font-size: 0.9rem;'>⚠️ 提示：排行榜数据由 Vercel 云端驱动。目前处于本地离线模式，发布到线上后即可查看实时排名！</div>";
+        }
     }
 </script>
 
