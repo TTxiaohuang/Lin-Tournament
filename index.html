@@ -302,13 +302,20 @@
 
     async function submitAndShowRanking(songName) {
         const rankingDiv = document.getElementById('ranking-list');
-        rankingDiv.innerHTML = "<div style='text-align:center;'>正在同步全网夺冠数据... ⏳</div>";
+        rankingDiv.innerHTML = "<div style='text-align:center;'>正在跨海连接服务器... ⏳</div>";
         try {
             const response = await fetch('/api/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ songName: songName })
             });
+            
+            // 🚨 X光开启：如果服务器拒绝，直接把拒绝原因抓出来！
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status} | 详情: ${errorText || '无返回值'}`);
+            }
+            
             const topSongs = await response.json();
             
             let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网热度榜 🔥</h3>";
@@ -323,7 +330,13 @@
             html += "</ul>";
             rankingDiv.innerHTML = html;
         } catch (e) {
-            rankingDiv.innerHTML = "<div style='text-align:center; color:#e74c3c;'>⚠️ 离线模式：发布后开启全网排名</div>";
+            // 🚨 不再显示温柔的“离线模式”，直接把血淋淋的报错拍在屏幕上
+            console.error("彻底失败了:", e);
+            rankingDiv.innerHTML = `<div style='text-align:center; color:#ff4444; font-size:0.9rem; padding: 10px; border: 1px dashed #ff4444; background: rgba(255,0,0,0.1); border-radius: 8px;'>
+                <b>请求中断诊断报告：</b><br>
+                ${e.message} <br><br>
+                <span style="color:#aaa; font-size:0.8rem;">(请把这个红框截图发给我)</span>
+            </div>`;
         }
     }
 </script>
