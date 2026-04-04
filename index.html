@@ -14,18 +14,19 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* 锁死屏幕高度，禁止任何滚动 */
         body {
             margin: 0;
             padding: 0;
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            min-height: 100vh;
+            height: 100dvh; /* 使用动态视口高度，适配手机浏览器上下工具栏 */
+            width: 100vw;
+            overflow: hidden; 
             display: flex;
             justify-content: center;
             align-items: center;
-            /* 背景图：确保你的根目录有 background.jpeg */
             background: url('background.jpeg') no-repeat center center fixed;
             background-size: cover;
-            overflow-x: hidden;
         }
 
         .glass-overlay {
@@ -37,23 +38,36 @@
             z-index: -1;
         }
 
-        .container {
-            width: 95%;
-            max-width: 800px;
-            background: var(--overlay-bg);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 24px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            color: white;
+        /* 核心 App 容器：强制 18:9 比例感，上下吸顶吸底 */
+        .app-container {
+            width: 100%;
+            /* 在电脑端限制宽度，维持手机 18:9 的瘦长比例 (50vh = 高度的一半) */
+            max-width: 50vh; 
+            height: 100%; 
             display: none; 
+            flex-direction: column;
+            justify-content: space-between; /* 关键：把文字推上去，卡片推下来 */
+            padding: 5vh 20px 4vh 20px; /* 上下留出安全距离 */
+            position: relative;
         }
 
-        #start-screen { text-align: center; color: white; z-index: 10; }
+        /* 开始与结果屏幕的独立样式 */
+        #start-screen, #result-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+            max-width: 50vh;
+            padding: 20px;
+            color: white;
+        }
 
         .start-btn {
-            padding: 15px 50px;
-            font-size: 1.5rem;
+            padding: 15px 40px;
+            font-size: 1.2rem;
             background: #ffffff;
             color: #333;
             border: none;
@@ -64,62 +78,81 @@
             font-weight: bold;
         }
 
-        .start-btn:hover { transform: scale(1.1); background: var(--accent-color); }
-
-        .header-info { margin-bottom: 20px; text-align: center; }
-        .round-title { font-size: 1rem; color: #ddd; text-transform: uppercase; letter-spacing: 2px; }
-        .zone-title { font-size: 1.4rem; margin: 10px 0; color: var(--accent-color); }
-        .remark-text {
-            font-size: 0.95rem; line-height: 1.6; background: rgba(0,0,0,0.2);
-            padding: 15px; border-radius: 12px; margin-bottom: 25px;
-            border-left: 4px solid var(--accent-color); text-align: center;
+        .start-btn:disabled {
+            background: #cccccc;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        .cards-container { display: flex; gap: 20px; justify-content: center; }
+        .start-btn:not(:disabled):hover { transform: scale(1.05); background: var(--accent-color); }
 
-        @media (max-width: 600px) { .cards-container { flex-direction: column; } }
+        /* 顶部文字区域 */
+        .top-section { text-align: center; }
+        .round-title { font-size: 0.9rem; color: #ddd; text-transform: uppercase; letter-spacing: 2px; }
+        .zone-title { font-size: 1.3rem; margin: 8px 0; color: var(--accent-color); font-weight: bold;}
+        .remark-text {
+            font-size: 0.9rem; line-height: 1.5; background: rgba(0,0,0,0.25);
+            padding: 12px; border-radius: 12px; margin-top: 15px;
+            border-left: 3px solid var(--accent-color); text-align: left;
+        }
+
+        /* 底部卡片区域：强行左右排列 */
+        .cards-container { 
+            display: flex; 
+            flex-direction: row; /* 强制水平排列 */
+            gap: 15px; 
+            width: 100%; 
+        }
 
         .song-card {
-            flex: 1; background: rgba(255, 255, 255, 0.1); border-radius: 18px;
-            padding: 20px; cursor: pointer; transition: 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex: 1; /* 左右各占 50% */
+            background: rgba(255, 255, 255, 0.1); 
+            border-radius: 16px;
+            padding: 12px; 
+            cursor: pointer; 
+            transition: 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex; flex-direction: column; align-items: center; text-align: center;
         }
 
-        .song-card:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.2); }
+        .song-card:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.25); }
 
         .album-cover {
-            width: 100%; max-width: 220px; aspect-ratio: 1/1;
-            object-fit: cover; border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4); margin-bottom: 15px;
+            width: 100%; 
+            aspect-ratio: 1/1; /* 保持正方形 */
+            object-fit: cover; 
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+            margin-bottom: 10px;
         }
 
-        .song-name { font-size: 1.2rem; font-weight: bold; }
+        .song-name { font-size: 1.05rem; font-weight: bold; color: white;}
 
-        .result-screen { display: none; text-align: center; }
-        .champion-cover { width: 250px; height: 250px; border-radius: 20px; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .champion-cover { width: 60vw; max-width: 250px; aspect-ratio: 1/1; border-radius: 20px; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <div class="glass-overlay"></div>
 
-<audio id="main-bgm" loop>
+<audio id="main-bgm" loop preload="none">
     <source src="bgm.mp3" type="audio/mpeg">
 </audio>
 
 <div id="start-screen">
-    <h1 style="font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">林家谦歌曲锦标赛</h1>
-    <p style="margin-bottom: 40px; opacity: 0.9;">32首心头好，最终谁会留在你的“一人之境”？</p>
-    <button class="start-btn" onclick="startTournament()">开始对决</button>
+    <h1 style="font-size: 2.2rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">林家谦锦标赛</h1>
+    <p style="margin-bottom: 40px; opacity: 0.9; font-size: 0.9rem;">32首心头好，最终谁会留在你的“一人之境”？</p>
+    <button class="start-btn" id="start-btn" onclick="startTournament()" disabled>资源加载中...</button>
 </div>
 
-<div class="container" id="game-container">
-    <div class="header-info">
+<div class="app-container" id="game-container">
+    <div class="top-section">
         <div class="round-title" id="round-display">LOADING...</div>
         <div id="zone-display" class="zone-title">赛区加载中</div>
+        <div id="remark-display" class="remark-text">开场白加载中...</div>
     </div>
-    <div id="remark-display" class="remark-text">开场白加载中...</div>
 
     <div class="cards-container">
         <div class="song-card" onclick="selectSong('A')">
@@ -133,16 +166,15 @@
     </div>
 </div>
 
-<div class="container result-screen" id="result-container">
-    <h2 style="color: var(--accent-color); margin-top: 0;">🏆 你的终极冠军 🏆</h2>
+<div id="result-container" style="display: none;">
+    <h2 style="color: var(--accent-color); margin-top: 0; font-size: 1.8rem;">🏆 你的终极冠军 🏆</h2>
     <img id="champion-cover" class="champion-cover" src="" alt="Champion">
-    <div class="song-name" id="champion-name" style="font-size: 2rem; margin-bottom: 20px;">歌曲名</div>
+    <div class="song-name" id="champion-name" style="font-size: 1.6rem; margin-bottom: 15px;">歌曲名</div>
     
-    <div id="ranking-list" style="margin: 20px auto; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; max-width: 400px; text-align: left; color: #ddd; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);">
+    <div id="ranking-list" style="width: 100%; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: left; color: #ddd; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); font-size: 0.9rem; margin-bottom: 20px;">
         </div>
 
-    <br>
-    <button class="start-btn" style="font-size: 1rem; padding: 10px 30px;" onclick="location.reload()">重新开启比赛</button>
+    <button class="start-btn" style="font-size: 1rem; padding: 12px 30px;" onclick="location.reload()">重新开启比赛</button>
 </div>
 
 <script>
@@ -159,42 +191,71 @@
         { zone: "第四赛区：怪癖与治愈的角落", remark: "最温柔的撑腰。是渴望‘等待你能明白的耳’的倾听，还是坚信‘种子已在发芽’的进取。在疲惫的时刻，哪一种鼓励能让你继续前行？", songA: "有你听我的故事", songB: "just carry on" },
         { zone: "第四赛区：怪癖与治愈的角落", remark: "深夜的自问自答。是拼命记取‘曾有一份爱存在’的微光，还是接受‘骤变几多个没终于答案’的虚无。关于过去，你会选择记住还是放手？", songA: "记得", songB: "无答案" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "一场没有终点的航行。是列车上‘瞬息间说你好吗’的相遇之喜，还是谢幕时‘为了来年安歌拼命无恙’的守望之情。人生的下一站，你与谁同行？", songA: "列车上对着坐的两个人", songB: "边一个发明了ENCORE" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin'" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin’" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "海与空的极致放逐。一边是悬停在半空、‘相信这一刹感觉’的瞬间，一边是流落到深海、‘放心漂到无人知晓海港’的永恒。你想向上飞升，还是向远漂流？", songA: "在空中的这一秒", songB: "流离者的海" },
         { zone: "第五赛区：旅途、连结与放逐", remark: "关系中的‘连结’与‘屏蔽’。是‘你把我们的世界连成线’的双向奔赴，还是‘单剔隔绝我跟他’的无声断裂。最极致的温柔遇上最冷酷的隔离，你会投给哪一种真实？", songA: "你的世界", songB: "隔离" },
         { zone: "最终赛区：极简的余韵", remark: "一切归于沉静。是‘平静拥抱怒与哀乐’的坚韧，还是‘归土归尘了了’的空灵。在音乐的尽头，哪一种声音能洗净你的尘埃？", songA: "听风", songB: "了了" }
     ];
 
+    // ================== 核心升级：严格资源加载控制 ==================
+    window.addEventListener('DOMContentLoaded', () => {
+        const startBtn = document.getElementById('start-btn');
+        let isReady = false;
+
+        // 统一放行函数
+        const setReady = () => {
+            if (isReady) return;
+            isReady = true;
+            startBtn.innerText = "开始对决";
+            startBtn.disabled = false;
+            // 步骤 3：背景和音乐都OK了，开始后台偷摸预加载所有专辑封面
+            preloadAllCovers(); 
+        };
+
+        // 步骤 1：强制优先下载背景图
+        const bgImg = new Image();
+        bgImg.src = 'background.jpeg';
+        bgImg.onload = () => {
+            // 步骤 2：背景图下载完后，命令浏览器开始下载音乐
+            const bgm = document.getElementById('main-bgm');
+            bgm.preload = "auto";
+            bgm.load();
+
+            // 监听音频，只要缓冲到能播一点点，就激活按钮
+            bgm.addEventListener('canplaythrough', setReady, { once: true });
+            
+            // 兜底：万一网络卡，或者个别手机限制预加载，3秒后强制激活按钮
+            setTimeout(setReady, 3000);
+        };
+        
+        // 兜底：如果你的 background.jpeg 路径不对，为了不卡死，也强制放行
+        bgImg.onerror = setReady;
+    });
+
+    // 预加载封面函数：把图片写入浏览器内存
+    function preloadAllCovers() {
+        initialData.forEach(match => {
+            const imgA = new Image(); imgA.src = `covers/${match.songA}.jpg`;
+            const imgB = new Image(); imgB.src = `covers/${match.songB}.jpg`;
+        });
+    }
+    // ===============================================================
+
     let currentMatches = [...initialData];
     let nextRoundWinners = [];
     let matchIndex = 0;
     const roundsInfo = { 16: "32进16", 8: "16进8", 4: "8进4", 2: "半决赛", 1: "总决赛" };
-    // === 新增：图片预加载功能 ===
-    function preloadAllCovers() {
-        initialData.forEach(match => {
-            // 在后台悄悄创建图片对象，迫使浏览器提前下载
-            const imgA = new Image();
-            imgA.src = `covers/${match.songA}.jpg`;
-            const imgB = new Image();
-            imgB.src = `covers/${match.songB}.jpg`;
-        });
-    }
-    // 网页只要一打开，立刻开始后台静默下载
-    preloadAllCovers();
-    // ============================
 
     function startTournament() {
-        document.getElementById('main-bgm').play().catch(e => console.log("等待用户交互自动播放"));
+        document.getElementById('main-bgm').play().catch(e => console.log("等待用户交互"));
         document.getElementById('start-screen').style.display = 'none';
-        document.getElementById('game-container').style.display = 'block';
+        document.getElementById('game-container').style.display = 'flex';
         renderMatch();
     }
 
     function renderMatch() {
         const match = currentMatches[matchIndex];
-        const roundTitle = roundsInfo[currentMatches.length];
-        
-        document.getElementById('round-display').innerText = `${roundTitle} · 组别 ${matchIndex + 1} / ${currentMatches.length}`;
+        document.getElementById('round-display').innerText = `${roundsInfo[currentMatches.length]} · 组别 ${matchIndex + 1} / ${currentMatches.length}`;
         
         if (currentMatches.length === 16) {
             document.getElementById('zone-display').innerText = match.zone;
@@ -214,15 +275,11 @@
 
     function selectSong(choice) {
         const match = currentMatches[matchIndex];
-        const winner = (choice === 'A') ? match.songA : match.songB;
-        nextRoundWinners.push(winner);
+        nextRoundWinners.push(choice === 'A' ? match.songA : match.songB);
         matchIndex++;
 
         if (matchIndex >= currentMatches.length) {
-            if (nextRoundWinners.length === 1) {
-                showChampion(nextRoundWinners[0]);
-                return;
-            }
+            if (nextRoundWinners.length === 1) return showChampion(nextRoundWinners[0]);
             currentMatches = [];
             for (let i = 0; i < nextRoundWinners.length; i += 2) {
                 currentMatches.push({ songA: nextRoundWinners[i], songB: nextRoundWinners[i+1] });
@@ -233,51 +290,39 @@
         renderMatch();
     }
 
-    // 核心修改点：对接 Vercel API
     function showChampion(songName) {
         document.getElementById('game-container').style.display = 'none';
-        document.getElementById('result-container').style.display = 'block';
+        document.getElementById('result-container').style.display = 'flex';
         document.getElementById('champion-name').innerText = `《${songName}》`;
         document.getElementById('champion-cover').src = `covers/${songName}.jpg`;
-
-        // 触发数据库记账和拉取榜单
         submitAndShowRanking(songName);
     }
 
     async function submitAndShowRanking(songName) {
         const rankingDiv = document.getElementById('ranking-list');
         rankingDiv.innerHTML = "<div style='text-align:center;'>正在同步全网夺冠数据... ⏳</div>";
-
         try {
-            // 向 Vercel 云端的 vote.js 接口发送 POST 请求
             const response = await fetch('/api/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ songName: songName })
             });
-
             if (!response.ok) throw new Error('网络请求失败');
             const topSongs = await response.json();
-
-            // 拼装前五名排行榜 HTML
-            let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网夺冠热度榜 🔥</h3>";
-            html += "<ul style='list-style:none; padding:0; margin:0;'>";
             
+            let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网热度榜 🔥</h3>";
+            html += "<ul style='list-style:none; padding:0; margin:0;'>";
             topSongs.forEach((song, index) => {
                 let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '✨';
-                html += `
-                    <li style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-                        <span>${medal} 《${song.songName}》</span>
-                        <span style="font-weight: bold; color: var(--accent-color);">${song.votes} 次</span>
-                    </li>`;
+                html += `<li style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                            <span>${medal} 《${song.songName}》</span>
+                            <span style="font-weight: bold; color: var(--accent-color);">${song.votes} 次</span>
+                         </li>`;
             });
             html += "</ul>";
             rankingDiv.innerHTML = html;
-
         } catch (error) {
-            console.error("提交失败:", error);
-            // 贴心提示：如果用户在本地双击打开网页，会显示这条提示（因为本地没有服务器运行接口）
-            rankingDiv.innerHTML = "<div style='text-align:center; color:#e74c3c; font-size: 0.9rem;'>⚠️ 提示：排行榜数据由 Vercel 云端驱动。目前处于本地离线模式，发布到线上后即可查看实时排名！</div>";
+            rankingDiv.innerHTML = "<div style='text-align:center; color:#e74c3c;'>⚠️ 排行榜当前为离线模式，发布后即可生效</div>";
         }
     }
 </script>
