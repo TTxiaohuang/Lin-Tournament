@@ -20,7 +20,7 @@
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
             height: 100dvh;
             width: 100vw;
-            overflow: hidden; 
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -41,8 +41,8 @@
         .app-container {
             width: 100%;
             max-width: 50vh; /* 在大屏幕上维持手机比例 */
-            height: 100%; 
-            display: none; 
+            height: 100%;
+            display: none;
             flex-direction: column;
             padding: 4vh 20px 3vh 20px;
             position: relative;
@@ -78,7 +78,7 @@
         .start-btn:not(:disabled):hover { transform: scale(1.05); background: var(--accent-color); }
 
         /* 顶部文字区域：自动填充空白空间 */
-        .top-section { 
+        .top-section {
             flex-grow: 1; /* 自动撑开，填补中间空白 */
             display: flex;
             flex-direction: column;
@@ -89,36 +89,36 @@
 
         .round-title { font-size: 0.85rem; color: #ccc; letter-spacing: 2px; }
         .zone-title { font-size: 1.25rem; margin: 10px 0; color: var(--accent-color); font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
-        
+
         .remark-text {
-            font-size: 0.95rem; 
-            line-height: 1.6; 
+            font-size: 0.95rem;
+            line-height: 1.6;
             color: #ffffff; /* 强制改为白色 */
             background: rgba(0, 0, 0, 0.45); /* 稍微加深的半透明底色 */
-            padding: 15px; 
-            border-radius: 12px; 
+            padding: 15px;
+            border-radius: 12px;
             margin-top: 10px;
-            border-left: 4px solid var(--accent-color); 
+            border-left: 4px solid var(--accent-color);
             text-align: left;
             text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* 文字阴影增强可读性 */
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         /* 底部卡片区域：锁定比例 */
-        .cards-container { 
-            display: flex; 
-            flex-direction: row; 
-            gap: 12px; 
-            width: 100%; 
+        .cards-container {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            width: 100%;
             padding-bottom: 10px;
         }
 
         .song-card {
-            flex: 1; 
-            background: rgba(255, 255, 255, 0.12); 
+            flex: 1;
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 16px;
-            padding: 10px; 
-            cursor: pointer; 
+            padding: 10px;
+            cursor: pointer;
             transition: 0.2s;
             border: 1px solid rgba(255, 255, 255, 0.15);
             display: flex; flex-direction: column; align-items: center;
@@ -127,18 +127,18 @@
         .song-card:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.2); }
 
         .album-cover {
-            width: 100%; 
-            aspect-ratio: 1/1; 
-            object-fit: cover; 
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
             margin-bottom: 8px;
         }
 
-        .song-name { 
-            font-size: 0.95rem; 
-            font-weight: bold; 
-            color: white; 
+        .song-name {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: white;
             display: -webkit-box;
             -webkit-line-clamp: 2; /* 歌名太长时自动换行，最多显示两行 */
             -webkit-box-orient: vertical;
@@ -146,11 +146,130 @@
         }
 
         .champion-cover { width: 65vw; max-width: 250px; aspect-ratio: 1/1; border-radius: 20px; margin: 15px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        /* 排行榜弹层样式 */
+        .ranking-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            overflow-y: auto;
+            padding: 20px;
+            color: white;
+            animation: fadeIn 0.3s ease;
+        }
+        .ranking-modal-inner {
+            max-width: 50vh;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+        .ranking-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .ranking-close-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .ranking-close-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .ranking-item {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+        .ranking-item:hover { background: rgba(255,255,255,0.1); }
+        .ranking-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .ranking-item-name { font-size: 0.95rem; }
+        .ranking-item-votes {
+            font-weight: bold;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .ranking-bar-bg {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            height: 5px;
+            overflow: hidden;
+        }
+        .ranking-bar-fill {
+            background: linear-gradient(90deg, var(--accent-color), #ffe066);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 辅助按钮样式 */
+        .ghost-btn {
+            padding: 12px 30px;
+            font-size: 0.95rem;
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+        .ghost-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        /* 存档提示条 */
+        .save-toast {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-60px);
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(6px);
+        }
+        .save-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
     </style>
 </head>
 <body>
 
 <div class="glass-overlay"></div>
+
+<!-- 存档提示条 -->
+<div class="save-toast" id="save-toast">💾 进度已保存</div>
 
 <audio id="main-bgm" loop preload="none">
     <source src="bgm.mp3" type="audio/mpeg">
@@ -158,8 +277,11 @@
 
 <div id="start-screen">
     <h1 style="font-size: 2rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">林家谦锦标赛</h1>
-    <p style="margin-bottom: 30px; opacity: 0.8; font-size: 0.85rem;">32首心头好，最终谁会留在你的“一人之境”？</p>
+    <p style="margin-bottom: 30px; opacity: 0.8; font-size: 0.85rem;">32首心头好，最终谁会留在你的"一人之境"？</p>
     <button class="start-btn" id="start-btn" onclick="startTournament()" disabled>资源加载中...</button>
+    <div id="extra-buttons" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+        <!-- 排行榜按钮（预加载完成后显示） -->
+    </div>
 </div>
 
 <div class="app-container" id="game-container">
@@ -185,33 +307,155 @@
     <h2 style="color: var(--accent-color); margin-top: 0; font-size: 1.6rem;">🏆 你的终极冠军 🏆</h2>
     <img id="champion-cover" class="champion-cover" src="" alt="Champion">
     <div class="song-name" id="champion-name" style="font-size: 1.5rem; margin-bottom: 15px;">歌曲名</div>
-    
+
     <div id="ranking-list" style="width: 100%; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 12px; text-align: left; color: #eee; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); font-size: 0.85rem; margin-bottom: 20px;">
-        </div>
+    </div>
 
     <button class="start-btn" style="font-size: 1rem; padding: 12px 30px;" onclick="restartTournament()">重新开始比赛</button>
+    <button class="ghost-btn" style="margin-top: 12px;" onclick="showGlobalRanking()">📊 查看全网排行榜</button>
+</div>
+
+<!-- 全网排行榜弹层 -->
+<div id="ranking-modal" class="ranking-modal">
+    <div class="ranking-modal-inner">
+        <div class="ranking-modal-header">
+            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.4rem;">📊 全网热度榜</h2>
+            <button class="ranking-close-btn" onclick="closeGlobalRanking()">✕</button>
+        </div>
+        <div id="global-ranking-list">
+            <div style="text-align:center; padding:40px 0; color:#888;">加载中...</div>
+        </div>
+    </div>
 </div>
 
 <script>
     const initialData = [
-        { zone: "第一赛区：流行之巅的抉择", remark: "林家谦最广为人知的两张名片。是坚守那份‘一个人原来都可以尽兴’的自足，还是在‘反覆错爱之旅’中期待下一位前度？孤独的狂欢还是爱情的轮回，请抉择！", songA: "一人之境", songB: "下一位前度" },
-        { zone: "第一赛区：流行之巅的抉择", remark: "黄伟文与林夕的词作巅峰对撞。一边是想回到过去‘吞了喜欢你’的强烈执念，一边是‘未能共享一叶舟’的淡然释怀。哪一种遗憾，让你更无法自拔？", songA: "时光倒流一句话", songB: "某种老朋友" },
-        { zone: "第二赛区：四季流转的映画", remark: "最灿烂的生命力对决！是春日里‘忙着发光不要被阴影掩盖’的乐观，还是盛夏中‘暑天越冷越对’的叛逆？你是春天的信徒，还是夏天的孩子？", songA: "春日部", songB: "夏日之子" },
-        { zone: "第二赛区：四季流转的映画", remark: "气温骤降时的耳边呢喃。是‘枯藤老树昏鸦’的古典萧瑟，还是‘漫天雪中赔过罪’的现代寂寥？在冷色调的曲风里，哪一首最能温暖你？", songA: "秋叶缘", songB: "冬季限定" },
-        { zone: "第二赛区：四季流转的映画", remark: "关于‘初夏’的纯爱分镜。是四月里‘从未牵手的章节’的朦胧心事，还是盛夏祭典中‘雪糕杯美学’的定格感动？选出你心中的那首青春物语。", songA: "四月物语", songB: "夏之风物诗" },
-        { zone: "第三赛区：众生相与处世法", remark: "‘好人’的双重心理审问。是因被背叛而产生的‘吝啬信任’，还是因面对灵魂考验时的‘不敢变坏’？这场关于良心的博弈，谁更触动你？", songA: "万一你是个好人", songB: "怪我只敢做好人" },
-        { zone: "第三赛区：众生相与处世法", remark: "逃离现实的两种药剂。是糊涂一点、‘随心写结尾’的氧气，还是爬进时间沙漏、‘忘记俗世争斗’的奇幻。今晚，你准备服用哪一颗魔药？", songA: "神奇的糊涂魔药", songB: "特伦斯梦游仙境" },
-        { zone: "第三赛区：众生相与处世法", remark: "出世与入世的哲学思考。是看透轮回、‘回望遗憾中普渡’的厚重，还是沉浸式体验、‘见步行步感觉着’的轻快。哪一种活法，是你追求的彼岸？", songA: "普渡众生", songB: "喃呒师感官漫游" },
-        { zone: "第四赛区：怪癖与治愈的角落", remark: "最真实的林氏生活侧写。是极致挑剔、‘优雅地折堕’的洁癖，还是彻底躺平、‘化作世界滋养’的安然。面对这份‘不合群’，你选哪一边？", songA: "难道喜欢处女座", songB: "小林不动产" },
-        { zone: "第四赛区：怪癖与治愈的角落", remark: "最温柔的撑腰。是渴望‘等待你能明白的耳’的倾听，还是坚信‘种子已在发芽’的进取。在疲惫的时刻，哪一种鼓励能让你继续前行？", songA: "有你听我的故事", songB: "just carry on" },
-        { zone: "第四赛区：怪癖与治愈的角落", remark: "深夜的自问自答。是拼命记取‘曾有一份爱存在’的微光，还是接受‘骤变几多个没终于答案’的虚无。关于过去，你会选择记住还是放手？", songA: "记得", songB: "无答案" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "一场没有终点的航行。是列车上‘瞬息间说你好吗’的相遇之喜，还是谢幕时‘为了来年安歌拼命无恙’的守望之情。人生的下一站，你与谁同行？", songA: "列车上对着坐的两个人", songB: "边一个发明了ENCORE" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道‘记录未知土块’的趣怪蹦跳，还是在万呎高空‘引力随负重归零’的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin’" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "海与空的极致放逐。一边是悬停在半空、‘相信这一刹感觉’的瞬间，一边是流落到深海、‘放心漂到无人知晓海港’的永恒。你想向上飞升，还是向远漂流？", songA: "在空中的这一秒", songB: "流离者的海" },
-        { zone: "第五赛区：旅途、连结与放逐", remark: "关系中的‘连结’与‘屏蔽’。是‘你把我们的世界连成线’的双向奔赴，还是‘单剔隔绝我跟他’的无声断裂。最极致的温柔遇上最冷酷的隔离，你会投给哪一种真实？", songA: "你的世界", songB: "隔离" },
-        { zone: "最终赛区：极简的余韵", remark: "一切归于沉静。是‘平静拥抱怒与哀乐’的坚韧，还是‘归土归尘了了’的空灵。在音乐的尽头，哪一种声音能洗净你的尘埃？", songA: "听风", songB: "了了" }
+        { zone: "第一赛区：流行之巅的抉择", remark: "林家谦最广为人知的两张名片。是坚守那份'一个人原来都可以尽兴'的自足，还是在'反覆错爱之旅'中期待下一位前度？孤独的狂欢还是爱情的轮回，请抉择！", songA: "一人之境", songB: "下一位前度" },
+        { zone: "第一赛区：流行之巅的抉择", remark: "黄伟文与林夕的词作巅峰对撞。一边是想回到过去'吞了喜欢你'的强烈执念，一边是'未能共享一叶舟'的淡然释怀。哪一种遗憾，让你更无法自拔？", songA: "时光倒流一句话", songB: "某种老朋友" },
+        { zone: "第二赛区：四季流转的映画", remark: "最灿烂的生命力对决！是春日里'忙着发光不要被阴影掩盖'的乐观，还是盛夏中'暑天越冷越对'的叛逆？你是春天的信徒，还是夏天的孩子？", songA: "春日部", songB: "夏日之子" },
+        { zone: "第二赛区：四季流转的映画", remark: "气温骤降时的耳边呢喃。是'枯藤老树昏鸦'的古典萧瑟，还是'漫天雪中赔过罪'的现代寂寥？在冷色调的曲风里，哪一首最能温暖你？", songA: "秋叶缘", songB: "冬季限定" },
+        { zone: "第二赛区：四季流转的映画", remark: "关于'初夏'的纯爱分镜。是四月里'从未牵手的章节'的朦胧心事，还是盛夏祭典中'雪糕杯美学'的定格感动？选出你心中的那首青春物语。", songA: "四月物语", songB: "夏之风物诗" },
+        { zone: "第三赛区：众生相与处世法", remark: "'好人'的双重心理审问。是因被背叛而产生的'吝啬信任'，还是因面对灵魂考验时的'不敢变坏'？这场关于良心的博弈，谁更触动你？", songA: "万一你是个好人", songB: "怪我只敢做好人" },
+        { zone: "第三赛区：众生相与处世法", remark: "逃离现实的两种药剂。是糊涂一点、'随心写结尾'的氧气，还是爬进时间沙漏、'忘记俗世争斗'的奇幻。今晚，你准备服用哪一颗魔药？", songA: "神奇的糊涂魔药", songB: "特伦斯梦游仙境" },
+        { zone: "第三赛区：众生相与处世法", remark: "出世与入世的哲学思考。是看透轮回、'回望遗憾中普渡'的厚重，还是沉浸式体验、'见步行步感觉着'的轻快。哪一种活法，是你追求的彼岸？", songA: "普渡众生", songB: "喃呒师感官漫游" },
+        { zone: "第四赛区：怪癖与治愈的角落", remark: "最真实的林氏生活侧写。是极致挑剔、'优雅地折堕'的洁癖，还是彻底躺平、'化作世界滋养'的安然。面对这份'不合群'，你选哪一边？", songA: "难道喜欢处女座", songB: "小林不动产" },
+        { zone: "第四赛区：怪癖与治愈的角落", remark: "最温柔的撑腰。是渴望'等待你能明白的耳'的倾听，还是坚信'种子已在发芽'的进取。在疲惫的时刻，哪一种鼓励能让你继续前行？", songA: "有你听我的故事", songB: "just carry on" },
+        { zone: "第四赛区：怪癖与治愈的角落", remark: "深夜的自问自答。是拼命记取'曾有一份爱存在'的微光，还是接受'骤变几多个没终于答案'的虚无。关于过去，你会选择记住还是放手？", songA: "记得", songB: "无答案" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "一场没有终点的航行。是列车上'瞬息间说你好吗'的相遇之喜，还是谢幕时'为了来年安歌拼命无恙'的守望之情。人生的下一站，你与谁同行？", songA: "列车上对着坐的两个人", songB: "边一个发明了ENCORE" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "耳朵的重力实验。是在奇幻街道'记录未知土块'的趣怪蹦跳，还是在万呎高空'引力随负重归零'的纵身一跃。你想在这个世界起舞，还是在云雾中掉落？", songA: "doodoodoo", songB: "free fallin'" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "海与空的极致放逐。一边是悬停在半空、'相信这一刹感觉'的瞬间，一边是流落到深海、'放心漂到无人知晓海港'的永恒。你想向上飞升，还是向远漂流？", songA: "在空中的这一秒", songB: "流离者的海" },
+        { zone: "第五赛区：旅途、连结与放逐", remark: "关系中的'连结'与'屏蔽'。是'你把我们的世界连成线'的双向奔赴，还是'单剔隔绝我跟他'的无声断裂。最极致的温柔遇上最冷酷的隔离，你会投给哪一种真实？", songA: "你的世界", songB: "隔离" },
+        { zone: "最终赛区：极简的余韵", remark: "一切归于沉静。是'平静拥抱怒与哀乐'的坚韧，还是'归土归尘了了'的空灵。在音乐的尽头，哪一种声音能洗净你的尘埃？", songA: "听风", songB: "了了" }
     ];
 
+    // ============================================================
+    //  localStorage 存档系统
+    // ============================================================
+    const STORAGE_KEY = 'lin-tournament-progress';
+
+    function saveProgress() {
+        try {
+            const state = {
+                currentMatches: currentMatches,
+                nextRoundWinners: nextRoundWinners,
+                matchIndex: matchIndex,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            showSaveToast();
+        } catch (e) {
+            console.warn('存档失败:', e);
+        }
+    }
+
+    function loadProgress() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+            const state = JSON.parse(raw);
+            // 超过 24 小时自动作废
+            if (!state.timestamp || Date.now() - state.timestamp > 24 * 60 * 60 * 1000) {
+                localStorage.removeItem(STORAGE_KEY);
+                return false;
+            }
+            // 校验数据完整性
+            if (!Array.isArray(state.currentMatches) || typeof state.matchIndex !== 'number') {
+                localStorage.removeItem(STORAGE_KEY);
+                return false;
+            }
+            currentMatches = state.currentMatches;
+            nextRoundWinners = state.nextRoundWinners || [];
+            matchIndex = state.matchIndex;
+            return true;
+        } catch {
+            localStorage.removeItem(STORAGE_KEY);
+            return false;
+        }
+    }
+
+    function clearProgress() {
+        localStorage.removeItem(STORAGE_KEY);
+    }
+
+    function showSaveToast() {
+        const toast = document.getElementById('save-toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    // ============================================================
+    //  全网排行榜
+    // ============================================================
+    async function showGlobalRanking() {
+        document.getElementById('ranking-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        const listDiv = document.getElementById('global-ranking-list');
+        listDiv.innerHTML = '<div style="text-align:center; padding:40px 0; color:#888;">正在加载...</div>';
+        try {
+            const res = await fetch('/api/vote?top=32');
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const songs = await res.json();
+            if (!songs.length) {
+                listDiv.innerHTML = '<div style="text-align:center; padding:40px 0; color:#888;">暂无投票数据</div>';
+                return;
+            }
+            const maxVotes = songs[0].votes || 1;
+            let html = '';
+            songs.forEach((song, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span style="color:#888; min-width:24px; display:inline-block; text-align:right;">${i + 1}</span>`;
+                const barWidth = Math.round((song.votes / maxVotes) * 100);
+                html += `<div class="ranking-item">
+                    <div class="ranking-item-header">
+                        <span class="ranking-item-name">${medal} 《${song.songName}》</span>
+                        <span class="ranking-item-votes">${song.votes} 次</span>
+                    </div>
+                    <div class="ranking-bar-bg">
+                        <div class="ranking-bar-fill" style="width:${barWidth}%"></div>
+                    </div>
+                </div>`;
+            });
+            listDiv.innerHTML = html;
+        } catch (e) {
+            console.error('排行榜加载失败:', e);
+            listDiv.innerHTML = `<div style="text-align:center; padding:30px; color:#ff4444; border:1px dashed #ff4444; border-radius:10px; background:rgba(255,0,0,0.08);">
+                加载失败：${e.message}<br><span style="color:#888; font-size:0.8rem;">请稍后再试</span>
+            </div>`;
+        }
+    }
+
+    function closeGlobalRanking() {
+        document.getElementById('ranking-modal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // 点击弹层背景关闭
+    document.getElementById('ranking-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeGlobalRanking();
+    });
+
+    // ============================================================
+    //  页面初始化
+    // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.getElementById('start-btn');
         let isReady = false;
@@ -219,9 +463,20 @@
         const setReady = () => {
             if (isReady) return;
             isReady = true;
-            startBtn.innerText = "开始对决";
-            startBtn.disabled = false;
-            preloadAllCovers(); 
+            preloadAllCovers();
+
+            // 检查是否有存档
+            if (loadProgress()) {
+                startBtn.innerText = "▶ 继续上次比赛";
+                startBtn.disabled = false;
+            } else {
+                startBtn.innerText = "开始对决";
+                startBtn.disabled = false;
+            }
+
+            // 显示排行榜按钮
+            const extraButtons = document.getElementById('extra-buttons');
+            extraButtons.innerHTML = '<button class="ghost-btn" onclick="showGlobalRanking()">📊 查看全网排行榜</button>';
         };
 
         const bgImg = new Image();
@@ -255,25 +510,26 @@
         renderMatch();
     }
 
-    // === 新增：优雅的重新开始逻辑 ===
+    // === 重新开始逻辑 ===
     function restartTournament() {
-        // 1. 重置所有比赛数据到初始状态
+        // 重置所有比赛数据到初始状态
         currentMatches = [...initialData];
         nextRoundWinners = [];
         matchIndex = 0;
+        clearProgress(); // 清除存档
 
-        // 2. 隐藏结果界面，重新显示比赛界面
+        // 隐藏结果界面，重新显示比赛界面
         document.getElementById('result-container').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
 
-        // 3. 重新渲染第一场比赛卡片
+        // 重新渲染第一场比赛卡片
         renderMatch();
     }
 
     function renderMatch() {
         const match = currentMatches[matchIndex];
         document.getElementById('round-display').innerText = `${roundsInfo[currentMatches.length]} · 组别 ${matchIndex + 1} / ${currentMatches.length}`;
-        
+
         if (currentMatches.length === 16) {
             document.getElementById('zone-display').innerText = match.zone;
             document.getElementById('remark-display').innerText = match.remark;
@@ -296,7 +552,10 @@
         matchIndex++;
 
         if (matchIndex >= currentMatches.length) {
-            if (nextRoundWinners.length === 1) return showChampion(nextRoundWinners[0]);
+            if (nextRoundWinners.length === 1) {
+                clearProgress(); // 比赛结束，清除存档
+                return showChampion(nextRoundWinners[0]);
+            }
             currentMatches = [];
             for (let i = 0; i < nextRoundWinners.length; i += 2) {
                 currentMatches.push({ songA: nextRoundWinners[i], songB: nextRoundWinners[i+1] });
@@ -304,6 +563,8 @@
             nextRoundWinners = [];
             matchIndex = 0;
         }
+
+        saveProgress(); // 每选一首歌就存档
         renderMatch();
     }
 
@@ -324,15 +585,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ songName: songName })
             });
-            
-            // 🚨 X光开启：如果服务器拒绝，直接把拒绝原因抓出来！
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status} | 详情: ${errorText || '无返回值'}`);
             }
-            
+
             const topSongs = await response.json();
-            
+
             let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网热度榜 🔥</h3>";
             html += "<ul style='list-style:none; padding:0; margin:0;'>";
             topSongs.forEach((song, index) => {
@@ -345,7 +605,6 @@
             html += "</ul>";
             rankingDiv.innerHTML = html;
         } catch (e) {
-            // 🚨 不再显示温柔的“离线模式”，直接把血淋淋的报错拍在屏幕上
             console.error("彻底失败了:", e);
             rankingDiv.innerHTML = `<div style='text-align:center; color:#ff4444; font-size:0.9rem; padding: 10px; border: 1px dashed #ff4444; background: rgba(255,0,0,0.1); border-radius: 8px;'>
                 <b>请求中断诊断报告：</b><br>
