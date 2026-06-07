@@ -463,23 +463,17 @@
     window.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.getElementById('start-btn');
 
-        // 立即就绪，不等待背景图和音乐
-        const setReady = () => {
-            // 检查是否有存档
-            if (loadProgress()) {
-                startBtn.innerText = "▶ 继续上次比赛";
-                startBtn.disabled = false;
-            } else {
-                startBtn.innerText = "开始对决";
-                startBtn.disabled = false;
-            }
+        // 检查是否有存档
+        if (loadProgress()) {
+            startBtn.innerText = "▶ 继续上次比赛";
+        } else {
+            startBtn.innerText = "开始对决";
+        }
+        startBtn.disabled = false;
 
-            // 显示排行榜按钮
-            const extraButtons = document.getElementById('extra-buttons');
-            extraButtons.innerHTML = '<button class="ghost-btn" onclick="showGlobalRanking()">📊 查看全网排行榜</button>';
-        };
-
-        setReady();
+        // 显示排行榜按钮
+        const extraButtons = document.getElementById('extra-buttons');
+        extraButtons.innerHTML = '<button class="ghost-btn" onclick="showGlobalRanking()">📊 查看全网排行榜</button>';
 
         // 背景图和音乐在后台静默加载
         const bgImg = new Image();
@@ -490,28 +484,56 @@
     });
 
     // ============================================================
-    //  按需预加载封面（只加载当前轮次）
+    //  按比赛顺序依次加载封面
     // ============================================================
     const coverCache = new Set();
+    const coverQueue = [];
+    let coverLoading = false;
 
-    function getCoversForMatches(matches) {
-        const names = new Set();
-        matches.forEach(m => { names.add(m.songA); names.add(m.songB); });
-        return names;
+    // 按比赛顺序排列所有歌曲名（去重）
+    function buildCoverQueue() {
+        const seen = new Set();
+        const ordered = [];
+        initialData.forEach(match => {
+            [match.songA, match.songB].forEach(name => {
+                if (!seen.has(name)) {
+                    seen.add(name);
+                    ordered.push(name);
+                }
+            });
+        });
+        coverQueue.length = 0;
+        coverQueue.push(...ordered);
+        processCoverQueue();
     }
 
-    function preloadCovers(songNames) {
+    // 加速：优先加载指定歌曲（比赛切换时调用）
+    function prioritizeCovers(songNames) {
         songNames.forEach(name => {
             if (coverCache.has(name)) return;
-            coverCache.add(name);
-            const img = new Image();
-            img.src = `covers/${name}.jpg`;
+            const idx = coverQueue.indexOf(name);
+            if (idx > 0) {
+                coverQueue.splice(idx, 1);
+                coverQueue.unshift(name); // 插到队首
+            }
         });
+        processCoverQueue();
     }
 
-    // 预加载当前轮次所有封面
-    function preloadCurrentRound() {
-        preloadCovers(getCoversForMatches(currentMatches));
+    // 依次加载队列中的封面（同时最多 2 张并行）
+    function processCoverQueue() {
+        while (coverLoading === false && coverQueue.length > 0) {
+            const name = coverQueue.shift();
+            if (coverCache.has(name)) continue;
+            coverCache.add(name);
+            coverLoading = true;
+            const img = new Image();
+            img.onload = img.onerror = () => {
+                coverLoading = false;
+                processCoverQueue(); // 加载完一张，继续下一张
+            };
+            img.src = `covers/${name}.jpg`;
+        }
     }
 
     let currentMatches = [...initialData];
@@ -523,7 +545,7 @@
         document.getElementById('main-bgm').play().catch(e => console.log("等待交互"));
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
-        preloadCurrentRound(); // 开始时预加载当前轮次
+        buildCoverQueue(); // 按比赛顺序启动封面加载
         renderMatch();
     }
 
@@ -579,12 +601,11 @@
             }
             nextRoundWinners = [];
             matchIndex = 0;
-            preloadCurrentRound(); // 新轮次开始，预加载全部封面
-        } else {
-            // 同一轮内，预加载下一场的封面
-            const next = currentMatches[matchIndex];
-            if (next) preloadCovers([next.songA, next.songB]);
         }
+
+        // 优先加载下一场的封面
+        const next = currentMatches[matchIndex];
+        if (next) prioritizeCovers([next.songA, next.songB]);
 
         saveProgress(); // 每选一首歌就存档
         renderMatch();
