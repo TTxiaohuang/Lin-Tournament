@@ -8,7 +8,12 @@ export default async function handler(req, res) {
     const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
     if (!KV_URL || !KV_TOKEN) {
-        console.error("致命错误：Vercel 环境变量为空！请检查 Settings -> Environment Variables");
+        console.error("致命错误：环境变量为空！", {
+            hasKV_URL: !!process.env.KV_REST_API_URL,
+            hasUPSTASH_URL: !!process.env.UPSTASH_REDIS_REST_URL,
+            hasKV_TOKEN: !!process.env.KV_REST_API_TOKEN,
+            hasUPSTASH_TOKEN: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+        });
         return res.status(500).json({ error: '数据库密码丢失' });
     }
 
@@ -19,12 +24,23 @@ export default async function handler(req, res) {
         try {
             const top = Math.min(Math.max(parseInt(req.query?.top) || 5, 1), 32);
             const limit = top - 1; // Redis ZREVRANGE 是 0-indexed
+            const url = `${KV_URL}/ZREVRANGE/champion_leaderboard/0/${limit}/WITHSCORES`;
 
-            const rankRes = await fetch(`${KV_URL}/ZREVRANGE/champion_leaderboard/0/${limit}/WITHSCORES`, { headers });
+            console.log("GET 排行榜请求:", { top, limit, url: url.replace(KV_TOKEN, '***') });
+
+            const rankRes = await fetch(url, { headers });
+
+            if (!rankRes.ok) {
+                const errText = await rankRes.text();
+                console.error("Upstash GET 返回非200:", rankRes.status, errText);
+                return res.status(502).json({ error: '数据库查询失败', detail: errText });
+            }
+
             const rankData = await rankRes.json();
+            console.log("Upstash GET 响应:", JSON.stringify(rankData).substring(0, 200));
 
             let leaderboard = [];
-            if (rankData.result) {
+            if (rankData.result && Array.isArray(rankData.result)) {
                 for (let i = 0; i < rankData.result.length; i += 2) {
                     leaderboard.push({
                         songName: rankData.result[i],
@@ -35,8 +51,8 @@ export default async function handler(req, res) {
 
             return res.status(200).json(leaderboard);
         } catch (error) {
-            console.error("排行榜查询失败:", error);
-            return res.status(500).json({ error: '排行榜查询失败' });
+            console.error("排行榜查询异常:", error.message, error.stack);
+            return res.status(500).json({ error: '排行榜查询失败', detail: error.message });
         }
     }
 
