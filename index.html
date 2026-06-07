@@ -484,11 +484,12 @@
     });
 
     // ============================================================
-    //  按比赛顺序依次加载封面
+    //  按比赛顺序依次加载封面（支持并行 + 优先插队）
     // ============================================================
     const coverCache = new Set();
     const coverQueue = [];
-    let coverLoading = false;
+    let coversInFlight = 0;
+    const MAX_PARALLEL = 3; // 同时最多 3 张并行加载
 
     // 按比赛顺序排列所有歌曲名（去重）
     function buildCoverQueue() {
@@ -507,32 +508,40 @@
         processCoverQueue();
     }
 
-    // 加速：优先加载指定歌曲（比赛切换时调用）
+    // 加速：优先加载指定歌曲（插到队首）
     function prioritizeCovers(songNames) {
         songNames.forEach(name => {
             if (coverCache.has(name)) return;
             const idx = coverQueue.indexOf(name);
             if (idx > 0) {
                 coverQueue.splice(idx, 1);
-                coverQueue.unshift(name); // 插到队首
+                coverQueue.unshift(name);
             }
         });
         processCoverQueue();
     }
 
-    // 依次加载队列中的封面（同时最多 2 张并行）
+    // 并行加载队列中的封面
     function processCoverQueue() {
-        while (coverLoading === false && coverQueue.length > 0) {
+        while (coversInFlight < MAX_PARALLEL && coverQueue.length > 0) {
             const name = coverQueue.shift();
             if (coverCache.has(name)) continue;
             coverCache.add(name);
-            coverLoading = true;
+            coversInFlight++;
             const img = new Image();
             img.onload = img.onerror = () => {
-                coverLoading = false;
-                processCoverQueue(); // 加载完一张，继续下一张
+                coversInFlight--;
+                processCoverQueue();
             };
             img.src = `covers/${name}.jpg`;
+        }
+    }
+
+    // 预加载下一场的封面（渲染当前比赛时调用）
+    function preloadNextMatch() {
+        const nextIdx = matchIndex + 1;
+        if (nextIdx < currentMatches.length) {
+            prioritizeCovers([currentMatches[nextIdx].songA, currentMatches[nextIdx].songB]);
         }
     }
 
@@ -583,6 +592,8 @@
         document.getElementById('name-b').innerText = match.songB;
         document.getElementById('cover-a').src = `covers/${match.songA}.jpg`;
         document.getElementById('cover-b').src = `covers/${match.songB}.jpg`;
+
+        preloadNextMatch(); // 提前加载下一场的封面
     }
 
     function selectSong(choice) {
@@ -592,7 +603,7 @@
 
         if (matchIndex >= currentMatches.length) {
             if (nextRoundWinners.length === 1) {
-                clearProgress(); // 比赛结束，清除存档
+                clearProgress();
                 return showChampion(nextRoundWinners[0]);
             }
             currentMatches = [];
@@ -603,12 +614,8 @@
             matchIndex = 0;
         }
 
-        // 优先加载下一场的封面
-        const next = currentMatches[matchIndex];
-        if (next) prioritizeCovers([next.songA, next.songB]);
-
-        saveProgress(); // 每选一首歌就存档
-        renderMatch();
+        saveProgress();
+        renderMatch(); // renderMatch 内部会预加载下一场封面
     }
 
     function showChampion(songName) {
