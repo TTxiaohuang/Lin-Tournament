@@ -458,17 +458,13 @@
     });
 
     // ============================================================
-    //  页面初始化
+    //  页面初始化（不阻塞开始按钮）
     // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.getElementById('start-btn');
-        let isReady = false;
 
+        // 立即就绪，不等待背景图和音乐
         const setReady = () => {
-            if (isReady) return;
-            isReady = true;
-            preloadAllCovers();
-
             // 检查是否有存档
             if (loadProgress()) {
                 startBtn.innerText = "▶ 继续上次比赛";
@@ -483,23 +479,39 @@
             extraButtons.innerHTML = '<button class="ghost-btn" onclick="showGlobalRanking()">📊 查看全网排行榜</button>';
         };
 
+        setReady();
+
+        // 背景图和音乐在后台静默加载
         const bgImg = new Image();
         bgImg.src = 'background.jpeg';
-        bgImg.onload = () => {
-            const bgm = document.getElementById('main-bgm');
-            bgm.preload = "auto";
-            bgm.load();
-            bgm.addEventListener('canplaythrough', setReady, { once: true });
-            setTimeout(setReady, 3000);
-        };
-        bgImg.onerror = setReady;
+        const bgm = document.getElementById('main-bgm');
+        bgm.preload = "metadata";
+        bgm.load();
     });
 
-    function preloadAllCovers() {
-        initialData.forEach(match => {
-            const imgA = new Image(); imgA.src = `covers/${match.songA}.jpg`;
-            const imgB = new Image(); imgB.src = `covers/${match.songB}.jpg`;
+    // ============================================================
+    //  按需预加载封面（只加载当前轮次）
+    // ============================================================
+    const coverCache = new Set();
+
+    function getCoversForMatches(matches) {
+        const names = new Set();
+        matches.forEach(m => { names.add(m.songA); names.add(m.songB); });
+        return names;
+    }
+
+    function preloadCovers(songNames) {
+        songNames.forEach(name => {
+            if (coverCache.has(name)) return;
+            coverCache.add(name);
+            const img = new Image();
+            img.src = `covers/${name}.jpg`;
         });
+    }
+
+    // 预加载当前轮次所有封面
+    function preloadCurrentRound() {
+        preloadCovers(getCoversForMatches(currentMatches));
     }
 
     let currentMatches = [...initialData];
@@ -511,6 +523,7 @@
         document.getElementById('main-bgm').play().catch(e => console.log("等待交互"));
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
+        preloadCurrentRound(); // 开始时预加载当前轮次
         renderMatch();
     }
 
@@ -566,6 +579,11 @@
             }
             nextRoundWinners = [];
             matchIndex = 0;
+            preloadCurrentRound(); // 新轮次开始，预加载全部封面
+        } else {
+            // 同一轮内，预加载下一场的封面
+            const next = currentMatches[matchIndex];
+            if (next) preloadCovers([next.songA, next.songB]);
         }
 
         saveProgress(); // 每选一首歌就存档
