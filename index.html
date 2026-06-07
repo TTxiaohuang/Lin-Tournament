@@ -133,6 +133,11 @@
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.4);
             margin-bottom: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .album-cover.loaded {
+            opacity: 1;
         }
 
         .song-name {
@@ -590,10 +595,27 @@
 
         document.getElementById('name-a').innerText = match.songA;
         document.getElementById('name-b').innerText = match.songB;
-        document.getElementById('cover-a').src = `covers/${match.songA}.jpg`;
-        document.getElementById('cover-b').src = `covers/${match.songB}.jpg`;
 
-        preloadNextMatch(); // 提前加载下一场的封面
+        setCoverWithFade('cover-a', `covers/${match.songA}.jpg`);
+        setCoverWithFade('cover-b', `covers/${match.songB}.jpg`);
+
+        preloadNextMatch();
+    }
+
+    // 封面带淡入效果：已缓存立即显示，未缓存加载后淡入
+    function setCoverWithFade(imgId, src) {
+        const img = document.getElementById(imgId);
+        // 检查是否已缓存（浏览器内存中有这张图）
+        const cached = coverCache.has(src.replace('covers/', '').replace('.jpg', ''));
+        if (cached) {
+            img.classList.add('loaded');
+        } else {
+            img.classList.remove('loaded');
+        }
+        img.src = src;
+        // 图片加载完成后淡入
+        img.onload = () => img.classList.add('loaded');
+        img.onerror = () => img.classList.add('loaded');
     }
 
     function selectSong(choice) {
@@ -606,16 +628,23 @@
                 clearProgress();
                 return showChampion(nextRoundWinners[0]);
             }
+            // 轮次切换：创建新轮次并立即预加载第一场封面
+            const winners = [...nextRoundWinners];
             currentMatches = [];
-            for (let i = 0; i < nextRoundWinners.length; i += 2) {
-                currentMatches.push({ songA: nextRoundWinners[i], songB: nextRoundWinners[i+1] });
+            for (let i = 0; i < winners.length; i += 2) {
+                currentMatches.push({ songA: winners[i], songB: winners[i+1] });
             }
             nextRoundWinners = [];
             matchIndex = 0;
+            // 立即预加载新轮次前几场的封面
+            prioritizeCovers([currentMatches[0].songA, currentMatches[0].songB]);
+            if (currentMatches.length > 1) {
+                prioritizeCovers([currentMatches[1].songA, currentMatches[1].songB]);
+            }
         }
 
         saveProgress();
-        renderMatch(); // renderMatch 内部会预加载下一场封面
+        renderMatch();
     }
 
     function showChampion(songName) {
