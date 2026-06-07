@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🎤 林家谦歌曲锦标赛</title>
+    <title>林家谦歌曲锦标赛</title>
     <style>
         :root {
             --primary-color: #ffffff;
@@ -267,6 +267,39 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* 排名徽章 */
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .rank-badge.gold { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #333; }
+        .rank-badge.silver { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #333; }
+        .rank-badge.bronze { background: linear-gradient(135deg, #cd7f32, #a0652a); color: #fff; }
+        .rank-badge.normal { background: rgba(255,255,255,0.15); color: #aaa; }
+
+        /* 加载旋转动画 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body>
@@ -274,7 +307,7 @@
 <div class="glass-overlay"></div>
 
 <!-- 存档提示条 -->
-<div class="save-toast" id="save-toast">💾 进度已保存</div>
+<div class="save-toast" id="save-toast">进度已保存</div>
 
 <audio id="main-bgm" loop preload="none">
     <source src="bgm.mp3" type="audio/mpeg">
@@ -309,7 +342,7 @@
 </div>
 
 <div id="result-container" style="display: none;">
-    <h2 style="color: var(--accent-color); margin-top: 0; font-size: 1.6rem;">🏆 你的终极冠军 🏆</h2>
+    <h2 style="color: var(--accent-color); margin-top: 0; font-size: 1.6rem; letter-spacing: 2px;">终极冠军</h2>
     <img id="champion-cover" class="champion-cover" src="" alt="Champion">
     <div class="song-name" id="champion-name" style="font-size: 1.5rem; margin-bottom: 15px;">歌曲名</div>
 
@@ -317,14 +350,14 @@
     </div>
 
     <button class="start-btn" style="font-size: 1rem; padding: 12px 30px;" onclick="restartTournament()">重新开始比赛</button>
-    <button class="ghost-btn" style="margin-top: 12px;" onclick="showGlobalRanking()">📊 查看全网排行榜</button>
+    <button class="ghost-btn" style="margin-top: 12px;" onclick="showGlobalRanking()">查看全网排行榜</button>
 </div>
 
 <!-- 全网排行榜弹层 -->
 <div id="ranking-modal" class="ranking-modal">
     <div class="ranking-modal-inner">
         <div class="ranking-modal-header">
-            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.4rem;">📊 全网热度榜</h2>
+            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.4rem; letter-spacing: 1px;">全网热度榜</h2>
             <button class="ranking-close-btn" onclick="closeGlobalRanking()">✕</button>
         </div>
         <div id="global-ranking-list">
@@ -431,7 +464,7 @@
             const maxVotes = songs[0].votes || 1;
             let html = '';
             songs.forEach((song, i) => {
-                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span style="color:#888; min-width:24px; display:inline-block; text-align:right;">${i + 1}</span>`;
+                const medal = i === 0 ? '<span class="rank-badge gold">1</span>' : i === 1 ? '<span class="rank-badge silver">2</span>' : i === 2 ? '<span class="rank-badge bronze">3</span>' : `<span class="rank-badge normal">${i + 1}</span>`;
                 const barWidth = Math.round((song.votes / maxVotes) * 100);
                 html += `<div class="ranking-item">
                     <div class="ranking-item-header">
@@ -470,7 +503,7 @@
 
         // 检查是否有存档
         if (loadProgress()) {
-            startBtn.innerText = "▶ 继续上次比赛";
+            startBtn.innerText = "继续上次比赛";
         } else {
             startBtn.innerText = "开始对决";
         }
@@ -478,7 +511,7 @@
 
         // 显示排行榜按钮
         const extraButtons = document.getElementById('extra-buttons');
-        extraButtons.innerHTML = '<button class="ghost-btn" onclick="showGlobalRanking()">📊 查看全网排行榜</button>';
+        extraButtons.innerHTML = '<button class="ghost-btn" onclick="showGlobalRanking()">查看全网排行榜</button>';
 
         // 背景图和音乐在后台静默加载
         const bgImg = new Image();
@@ -657,7 +690,7 @@
 
     async function submitAndShowRanking(songName) {
         const rankingDiv = document.getElementById('ranking-list');
-        rankingDiv.innerHTML = "<div style='text-align:center;'>正在跨海连接服务器... ⏳</div>";
+        rankingDiv.innerHTML = "<div style='text-align:center;'><span class='spinner'></span>正在连接服务器...</div>";
         try {
             const response = await fetch('/api/vote', {
                 method: 'POST',
@@ -672,11 +705,11 @@
 
             const topSongs = await response.json();
 
-            let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>🔥 全网热度榜 🔥</h3>";
+            let html = "<h3 style='color: var(--accent-color); text-align: center; margin-top: 0;'>全网热度榜</h3>";
             html += "<ul style='list-style:none; padding:0; margin:0;'>";
             topSongs.forEach((song, index) => {
-                let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '✨';
-                html += `<li style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                let medal = index === 0 ? '<span class="rank-badge gold">1</span>' : index === 1 ? '<span class="rank-badge silver">2</span>' : index === 2 ? '<span class="rank-badge bronze">3</span>' : `<span class="rank-badge normal">${index + 1}</span>`;
+                html += `<li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
                             <span>${medal} 《${song.songName}》</span>
                             <span style="font-weight: bold; color: var(--accent-color);">${song.votes} 次</span>
                          </li>`;
@@ -685,10 +718,9 @@
             rankingDiv.innerHTML = html;
         } catch (e) {
             console.error("彻底失败了:", e);
-            rankingDiv.innerHTML = `<div style='text-align:center; color:#ff4444; font-size:0.9rem; padding: 10px; border: 1px dashed #ff4444; background: rgba(255,0,0,0.1); border-radius: 8px;'>
-                <b>请求中断诊断报告：</b><br>
-                ${e.message} <br><br>
-                <span style="color:#aaa; font-size:0.8rem;">(请把这个红框截图发给我)</span>
+            rankingDiv.innerHTML = `<div style='text-align:center; color:#ff6b6b; font-size:0.85rem; padding: 12px; border: 1px solid rgba(255,107,107,0.3); background: rgba(255,107,107,0.08); border-radius: 10px;'>
+                加载失败，请稍后重试<br>
+                <span style="color:#666; font-size:0.75rem;">${e.message}</span>
             </div>`;
         }
     }
