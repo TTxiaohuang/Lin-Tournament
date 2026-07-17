@@ -1,0 +1,33 @@
+{
+  "name": "lin-tournament",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TTxiaohuang/Lin-Tournament.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TTxiaohuang/Lin-Tournament/issues"
+  },
+  "homepage": "https://github.com/TTxiaohuang/Lin-Tournament#readme",
+  "dependencies": {
+    "html2canvas": "^1.4.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-zoom-pan-pinch": "^4.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.3",
+    "sharp": "^0.35.3",
+    "vite": "^8.1.5"
+  }
+}
