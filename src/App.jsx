@@ -251,7 +251,7 @@ function App() {
     document.body.appendChild(tempDiv);
     
     try {
-      const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(tempDiv, { scale: 1, useCORS: true, backgroundColor: '#ffffff' });
       const link = document.createElement('a');
       link.download = '林家谦锦标赛对阵图.png';
       link.href = canvas.toDataURL('image/png');
