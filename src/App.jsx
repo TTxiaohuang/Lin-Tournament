@@ -9,6 +9,7 @@ function App() {
   const [matchIndex, setMatchIndex] = useState(0);
   const [tournamentHistory, setTournamentHistory] = useState([]);
   const [audioPlayed, setAudioPlayed] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [nickname, setNickname] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
@@ -63,8 +64,12 @@ function App() {
     if (!audioRef.current || audioPlayed) return;
     const audio = audioRef.current;
     audio.volume = 0;
+    
+    // 乐观更新状态，让图标立即改变
+    setAudioPlayed(true);
+    setIsMusicPlaying(true);
+
     audio.play().then(() => {
-      setAudioPlayed(true);
       // fade in
       let vol = 0;
       const interval = setInterval(() => {
@@ -76,7 +81,29 @@ function App() {
           clearInterval(interval);
         }
       }, 150);
-    }).catch(err => console.log('Audio autoplay blocked:', err));
+    }).catch(err => {
+      console.log('Audio autoplay blocked:', err);
+      setIsMusicPlaying(false);
+    });
+  };
+
+  const toggleMusic = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    if (isMusicPlaying) {
+      audio.pause();
+      setIsMusicPlaying(false);
+    } else {
+      setIsMusicPlaying(true);
+      setAudioPlayed(true);
+      audio.volume = 1; // 明确点击强制恢复正常音量
+      audio.play().catch(err => {
+        console.log('Play blocked', err);
+        setIsMusicPlaying(false);
+      });
+    }
   };
 
   const startGame = () => {
@@ -754,7 +781,46 @@ function App() {
   return (
     <>
       <div className="glass-overlay"></div>
-      <audio ref={audioRef} src="/bgm.mp3" loop preload="none"></audio>
+      <div style={{
+        position: 'fixed',
+        top: '25px',
+        right: '25px',
+        zIndex: 1000,
+        cursor: 'pointer',
+        color: 'rgba(255, 255, 255, 0.85)',
+        transition: 'color 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+      }} 
+      onClick={toggleMusic}
+      onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.85)'; e.currentTarget.style.transform = 'scale(1)'; }}>
+        <div style={{ animation: isMusicPlaying ? 'float 4s ease-in-out infinite' : 'none' }}>
+          {isMusicPlaying ? (
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))' }}>
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          ) : (
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))', opacity: 0.6 }}>
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+              <line x1="3" y1="3" x2="21" y2="21" strokeWidth="1.5"></line>
+            </svg>
+          )}
+        </div>
+      </div>
+      <audio 
+        ref={audioRef} 
+        src="/bgm.mp3" 
+        preload="auto"
+        onEnded={(e) => {
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(console.error);
+          }
+        }}
+      ></audio>
       {gameState === 'start' && renderStart()}
       {gameState === 'playing' && renderPlaying()}
       {gameState === 'result' && renderResult()}
