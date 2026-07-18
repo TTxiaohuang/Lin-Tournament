@@ -9,6 +9,10 @@ function App() {
   const [matchIndex, setMatchIndex] = useState(0);
   const [tournamentHistory, setTournamentHistory] = useState([]);
   const [audioPlayed, setAudioPlayed] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState('');
   const audioRef = useRef(null);
 
   // Load from local storage
@@ -32,13 +36,14 @@ function App() {
 
   // Save to local storage
   useEffect(() => {
-    if (gameState !== 'start') {
+    if (gameState === 'start') {
+      localStorage.removeItem('tournamentState');
+    } else if (gameState !== 'leaderboard') {
       localStorage.setItem('tournamentState', JSON.stringify({
         gameState, currentMatches, nextRoundWinners, matchIndex, tournamentHistory
       }));
-    } else {
-      localStorage.removeItem('tournamentState');
     }
+    // 'leaderboard' 状态不保存也不清除，保留上一个有效状态
   }, [gameState, currentMatches, nextRoundWinners, matchIndex, tournamentHistory]);
 
   // Eager load images non-blocking
@@ -154,18 +159,43 @@ function App() {
     tempDiv.style.color = '#333333';
     tempDiv.style.padding = '30px';
     tempDiv.style.borderRadius = '16px';
+
+    // Top-left title
+    const titleEl = document.createElement('div');
+    titleEl.style.textAlign = 'left';
+    titleEl.style.marginBottom = '15px';
+    titleEl.style.fontSize = '20px';
+    titleEl.style.fontWeight = 'bold';
+    titleEl.style.color = '#333333';
+    titleEl.innerText = '林家谦二选一';
+    tempDiv.appendChild(titleEl);
     
     const clonedTable = table.cloneNode(true);
     clonedTable.style.width = 'max-content';
     tempDiv.appendChild(clonedTable);
 
+    // Bottom-left "by: nickname"
+    const bottomRow = document.createElement('div');
+    bottomRow.style.display = 'flex';
+    bottomRow.style.justifyContent = 'space-between';
+    bottomRow.style.alignItems = 'center';
+    bottomRow.style.marginTop = '20px';
+    bottomRow.style.fontSize = '14px';
+
+    const byEl = document.createElement('div');
+    byEl.style.textAlign = 'left';
+    byEl.style.color = '#555555';
+    byEl.style.fontWeight = 'bold';
+    byEl.innerText = nickname.trim() ? `By: ${nickname.trim()}` : 'By: 匿名';
+    bottomRow.appendChild(byEl);
+
     const watermark = document.createElement('div');
     watermark.style.textAlign = 'right';
-    watermark.style.marginTop = '20px';
-    watermark.style.fontSize = '14px';
     watermark.style.color = '#888888';
     watermark.innerText = '来源：https://lin-tournament.vercel.app/';
-    tempDiv.appendChild(watermark);
+    bottomRow.appendChild(watermark);
+
+    tempDiv.appendChild(bottomRow);
     
     document.body.appendChild(tempDiv);
     
@@ -188,6 +218,380 @@ function App() {
     setNextRoundWinners([]);
     setMatchIndex(0);
     setTournamentHistory([]);
+  };
+
+  const showLeaderboard = () => {
+    setGameState('leaderboard');
+    setLeaderboardLoading(true);
+    setLeaderboardError('');
+    fetch('/api/leaderboard')
+      .then(res => {
+        if (!res.ok) throw new Error('请求失败');
+        return res.json();
+      })
+      .then(data => {
+        setLeaderboard(data);
+        setLeaderboardLoading(false);
+      })
+      .catch(e => {
+        console.error(e);
+        setLeaderboardError('加载排行榜失败，请稍后重试');
+        setLeaderboardLoading(false);
+      });
+  };
+
+  const renderLeaderboard = () => {
+    const myChampion = nextRoundWinners[0] || (tournamentHistory.length > 0 ? tournamentHistory[tournamentHistory.length-1]?.matches?.[0]?.winner : null);
+    const totalVotes = leaderboard.reduce((sum, item) => sum + item.votes, 0);
+    const maxVotes = leaderboard.length > 0 ? leaderboard[0].votes : 1;
+
+    // 排名徽章：圆形渐变背景 + 数字
+    const RankBadge = ({ rank }) => {
+      const gradients = {
+        1: { from: '#FFE082', to: '#FFA000', text: '#3E2723', glow: 'rgba(255,193,7,0.5)' },
+        2: { from: '#E0E0E0', to: '#9E9E9E', text: '#212121', glow: 'rgba(189,189,189,0.4)' },
+        3: { from: '#D7A86E', to: '#8D6E4F', text: '#FFFFFF', glow: 'rgba(141,110,79,0.4)' }
+      };
+      const g = gradients[rank] || { from: 'rgba(255,255,255,0.12)', to: 'rgba(255,255,255,0.04)', text: 'rgba(255,255,255,0.7)', glow: 'transparent' };
+      const isTop3 = rank <= 3;
+      return (
+        <div style={{
+          width: isTop3 ? '36px' : '28px',
+          height: isTop3 ? '36px' : '28px',
+          borderRadius: '50%',
+          background: `linear-gradient(135deg, ${g.from} 0%, ${g.to} 100%)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: g.text,
+          fontWeight: '800',
+          fontSize: isTop3 ? '0.95rem' : '0.8rem',
+          flexShrink: 0,
+          boxShadow: isTop3 ? `0 4px 12px ${g.glow}, inset 0 1px 0 rgba(255,255,255,0.3)` : 'none',
+          fontFamily: "'SF Mono', 'Roboto Mono', monospace",
+          letterSpacing: '0'
+        }}>
+          {rank}
+        </div>
+      );
+    };
+
+    // 王冠矢量图标（仅 Top 1）
+    const CrownIcon = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'}}>
+        <path d="M5 16L3 5l5.5 4L12 4l3.5 5L21 5l-2 11H5zm0 2h14v2H5v-2z"/>
+      </svg>
+    );
+
+    // 勾选图标（你的选择标记）
+    const CheckIcon = () => (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    );
+
+    // 单条排行榜卡片
+    const RankCard = ({ item, index }) => {
+      const rank = index + 1;
+      const isTop1 = rank === 1;
+      const isMine = item.songName === myChampion;
+      const barWidth = (item.votes / maxVotes * 100);
+      const percent = totalVotes > 0 ? (item.votes / totalVotes * 100) : 0;
+
+      return (
+        <div style={{
+          position: 'relative',
+          background: isTop1
+            ? 'linear-gradient(135deg, rgba(255,224,130,0.18) 0%, rgba(255,160,0,0.08) 100%)'
+            : isMine
+              ? 'rgba(255,204,0,0.10)'
+              : 'rgba(255,255,255,0.06)',
+          border: isTop1
+            ? '1px solid rgba(255,193,7,0.45)'
+            : isMine
+              ? '1px solid rgba(255,204,0,0.4)'
+              : '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '14px',
+          padding: isTop1 ? '14px 14px' : '11px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          boxShadow: isTop1
+            ? '0 8px 24px rgba(255,160,0,0.18), inset 0 1px 0 rgba(255,255,255,0.15)'
+            : '0 2px 8px rgba(0,0,0,0.15)'
+        }}>
+          <RankBadge rank={rank} />
+
+          <div style={{position: 'relative', flexShrink: 0}}>
+            <img
+              src={`/covers/${item.songName}.webp`}
+              alt={item.songName}
+              style={{
+                width: isTop1 ? '52px' : '46px',
+                height: isTop1 ? '52px' : '46px',
+                borderRadius: '10px',
+                objectFit: 'cover',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.4)'
+              }}
+              onError={(e) => { e.target.style.opacity = '0.2'; }}
+            />
+            {isTop1 && (
+              <div style={{
+                position: 'absolute',
+                top: '-8px',
+                right: '-8px',
+                width: '22px',
+                height: '22px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FFE082 0%, #FFA000 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#3E2723',
+                boxShadow: '0 2px 6px rgba(255,160,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4)'
+              }}>
+                <CrownIcon />
+              </div>
+            )}
+          </div>
+
+          <div style={{flex: 1, minWidth: 0}}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginBottom: '6px'
+            }}>
+              <div style={{
+                color: isTop1 ? '#FFF8E1' : '#ffffff',
+                fontWeight: isTop1 ? '700' : '600',
+                fontSize: isTop1 ? '1rem' : '0.9rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                letterSpacing: '0.3px',
+                flex: 1,
+                minWidth: 0
+              }}>
+                {item.songName}
+              </div>
+              {isMine && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 7px 2px 5px',
+                  background: 'linear-gradient(135deg, rgba(255,204,0,0.3) 0%, rgba(255,170,0,0.2) 100%)',
+                  border: '1px solid rgba(255,204,0,0.5)',
+                  borderRadius: '10px',
+                  color: '#FFD54F',
+                  fontSize: '0.65rem',
+                  fontWeight: '600',
+                  letterSpacing: '0.5px',
+                  flexShrink: 0
+                }}>
+                  <CheckIcon />
+                  <span>你的选择</span>
+                </div>
+              )}
+            </div>
+
+            {/* 进度条 */}
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <div style={{
+                flex: 1,
+                height: '4px',
+                background: 'rgba(255,255,255,0.08)',
+                borderRadius: '2px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${barWidth}%`,
+                  height: '100%',
+                  background: isTop1
+                    ? 'linear-gradient(90deg, #FFD54F 0%, #FFA000 100%)'
+                    : 'linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%)',
+                  borderRadius: '2px',
+                  transition: 'width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)'
+                }}></div>
+              </div>
+              <div style={{
+                color: isTop1 ? '#FFD54F' : 'rgba(255,255,255,0.55)',
+                fontSize: '0.7rem',
+                fontWeight: '500',
+                flexShrink: 0,
+                minWidth: '38px',
+                textAlign: 'right',
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '0.3px'
+              }}>
+                {percent.toFixed(1)}%
+              </div>
+            </div>
+          </div>
+
+          {/* 票数 */}
+          <div style={{
+            flexShrink: 0,
+            textAlign: 'right',
+            minWidth: '42px'
+          }}>
+            <div style={{
+              color: isTop1 ? '#FFD54F' : '#ffffff',
+              fontWeight: '700',
+              fontSize: isTop1 ? '1.15rem' : '0.95rem',
+              fontVariantNumeric: 'tabular-nums',
+              lineHeight: 1
+            }}>
+              {item.votes}
+            </div>
+            <div style={{
+              color: 'rgba(255,255,255,0.4)',
+              fontSize: '0.65rem',
+              marginTop: '3px',
+              letterSpacing: '1px'
+            }}>
+              票
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="app-container" style={{ animation: 'fadeIn 0.5s ease-out', alignItems: 'center' }}>
+        {/* 头部 */}
+        <div style={{textAlign: 'center', marginBottom: '22px', flexShrink: 0}}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '5px 14px',
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '20px',
+            marginBottom: '14px'
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 20V10"/>
+              <path d="M12 20V4"/>
+              <path d="M6 20v-6"/>
+            </svg>
+            <span style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '500'}}>Leaderboard</span>
+          </div>
+          <h2 style={{
+            fontSize: '1.6rem',
+            color: '#ffffff',
+            margin: '0 0 6px 0',
+            letterSpacing: '4px',
+            fontWeight: '300',
+            textShadow: '0 2px 12px rgba(0,0,0,0.4)'
+          }}>网友们的选择</h2>
+          <p style={{
+            color: 'rgba(255,255,255,0.55)',
+            fontSize: '0.8rem',
+            margin: 0,
+            letterSpacing: '1px'
+          }}>
+            {leaderboardLoading ? '正在统计...' : (totalVotes > 0 ? `共 ${totalVotes} 位网友参与` : '暂无数据')}
+          </p>
+        </div>
+
+        {/* 你的冠军标记 */}
+        {myChampion && (
+          <div style={{
+            width: '100%',
+            background: 'linear-gradient(135deg, rgba(255,204,0,0.12) 0%, rgba(255,170,0,0.04) 100%)',
+            border: '1px solid rgba(255,204,0,0.3)',
+            borderRadius: '12px',
+            padding: '11px 16px',
+            marginBottom: '18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            flexShrink: 0
+          }}>
+            <div style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#FFD54F',
+              boxShadow: '0 0 8px rgba(255,213,79,0.8)',
+              flexShrink: 0
+            }}></div>
+            <span style={{color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', letterSpacing: '0.5px'}}>你选出的冠军</span>
+            <span style={{color: '#FFD54F', fontWeight: '600', fontSize: '0.9rem', letterSpacing: '0.5px'}}>{myChampion}</span>
+          </div>
+        )}
+
+        {/* 排行榜列表 */}
+        <div style={{width: '100%', flex: 1, overflowY: 'auto', paddingBottom: '20px', display: 'flex', flexDirection: 'column', gap: '9px'}}>
+          {leaderboardError && (
+            <div style={{
+              color: '#FF8A80',
+              textAlign: 'center',
+              padding: '50px 20px',
+              fontSize: '0.9rem',
+              letterSpacing: '0.5px'
+            }}>{leaderboardError}</div>
+          )}
+
+          {leaderboardLoading && (
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '50px 20px'}}>
+              <div style={{
+                width: '24px',
+                height: '24px',
+                border: '2px solid rgba(255,255,255,0.15)',
+                borderTopColor: '#FFD54F',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite'
+              }}></div>
+              <div style={{color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', letterSpacing: '1px'}}>加载中</div>
+            </div>
+          )}
+
+          {!leaderboardLoading && !leaderboardError && leaderboard.length === 0 && (
+            <div style={{
+              textAlign: 'center',
+              padding: '50px 20px',
+              color: 'rgba(255,255,255,0.45)'
+            }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{marginBottom: '12px'}}>
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+              </svg>
+              <div style={{fontSize: '0.85rem', letterSpacing: '0.5px'}}>还没有数据</div>
+              <div style={{fontSize: '0.7rem', marginTop: '4px', color: 'rgba(255,255,255,0.35)'}}>快去玩一局成为第一位</div>
+            </div>
+          )}
+
+          {!leaderboardLoading && !leaderboardError && leaderboard.length > 0 && (
+            leaderboard.map((item, index) => (
+              <RankCard key={item.songName} item={item} index={index} />
+            ))
+          )}
+        </div>
+
+        {/* 返回按钮 */}
+        <div className="action-buttons" style={{marginTop: '15px', flexShrink: 0}}>
+          <button
+            className="action-btn modern-btn"
+            onClick={() => setGameState('result')}
+            style={{
+              background: '#ffffff',
+              color: '#000000',
+              boxShadow: '0 8px 25px rgba(255, 255, 255, 0.25)',
+              fontSize: '1.1rem',
+              padding: '15px',
+              border: 'none'
+            }}>
+            返回
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const renderStart = () => (
@@ -314,9 +718,34 @@ function App() {
           </div>
         )}
 
+          <div style={{width: '100%', flexShrink: 0, marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px'}}>
+            <label htmlFor="nickname-input" style={{color: "#ffffff", fontSize: "0.95rem", fontWeight: "bold", letterSpacing: "1px", textShadow: "0 2px 6px rgba(0,0,0,0.6)", flexShrink: 0}}>By</label>
+            <input
+              id="nickname-input"
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="输入你的昵称"
+              maxLength={20}
+              style={{
+                flex: 1,
+                padding: '12px 18px',
+                background: '#ffffff',
+                border: 'none',
+                borderRadius: '50px',
+                color: '#333333',
+                fontSize: '0.95rem',
+                fontWeight: '500',
+                outline: 'none',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.35)'
+              }}
+            />
+          </div>
+
           <div className="action-buttons" style={{marginTop: '20px', flexShrink: 0}}>
             <button className="action-btn modern-btn" onClick={saveBracket} style={{background: '#ffffff', color: '#000000', boxShadow: '0 8px 25px rgba(255, 255, 255, 0.25)', fontSize: '1.1rem', padding: '15px', border: 'none'}}>保存对阵图</button>
-            <button className="action-btn" onClick={() => { setGameState('start'); setTournamentHistory([]); }} style={{background: 'rgba(255,255,255,0.1)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '1.1rem', padding: '15px', boxShadow: 'none'}}>再玩一次</button>
+            <button className="action-btn" onClick={showLeaderboard} style={{background: 'linear-gradient(135deg, #ffcc00 0%, #ffaa00 100%)', color: '#333333', border: 'none', fontSize: '1.1rem', padding: '15px', boxShadow: '0 8px 25px rgba(255, 170, 0, 0.4)', fontWeight: 'bold'}}>看看网友们的选择</button>
+            <button className="action-btn" onClick={() => { setCurrentMatches(initialData); setNextRoundWinners([]); setMatchIndex(0); setTournamentHistory([]); setGameState('playing'); }} style={{background: 'rgba(255,255,255,0.1)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.2)', fontSize: '1.1rem', padding: '15px', boxShadow: 'none'}}>再玩一次</button>
           </div>
       </div>
     );
@@ -329,6 +758,7 @@ function App() {
       {gameState === 'start' && renderStart()}
       {gameState === 'playing' && renderPlaying()}
       {gameState === 'result' && renderResult()}
+      {gameState === 'leaderboard' && renderLeaderboard()}
     </>
   );
 }
