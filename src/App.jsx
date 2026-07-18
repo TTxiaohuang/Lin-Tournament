@@ -199,6 +199,30 @@ function App() {
     
     const clonedTable = table.cloneNode(true);
     clonedTable.style.width = 'max-content';
+    clonedTable.style.borderCollapse = 'collapse';
+    clonedTable.style.color = '#333333';
+    clonedTable.style.textAlign = 'center';
+    clonedTable.style.fontSize = '14px';
+
+    const cells = clonedTable.querySelectorAll('td, th');
+    cells.forEach(cell => {
+      cell.style.border = '1px solid #999999';
+      cell.style.padding = '6px 4px';
+      cell.style.verticalAlign = 'middle';
+      cell.style.fontWeight = '500';
+      cell.style.color = '#333333';
+      
+      if (cell.classList.contains('col-color-0')) {
+        cell.style.backgroundColor = '#d9e5f3';
+      } else if (cell.classList.contains('col-color-1')) {
+        cell.style.backgroundColor = '#fff1ce';
+      } else if (cell.classList.contains('col-color-2')) {
+        cell.style.backgroundColor = '#f7e0d3';
+      } else {
+        cell.style.backgroundColor = '#ffffff';
+      }
+    });
+
     tempDiv.appendChild(clonedTable);
 
     // Bottom-left "by: nickname"
