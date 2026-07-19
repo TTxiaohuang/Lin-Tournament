@@ -632,7 +632,7 @@ function App() {
           )}
 
           {!leaderboardLoading && !leaderboardError && leaderboard.length > 0 && (
-            leaderboard.map((item, index) => (
+            leaderboard.slice(0, 10).map((item, index) => (
               <RankCard key={item.songName} item={item} index={index} />
             ))
           )}

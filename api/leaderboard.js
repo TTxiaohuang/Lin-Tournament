@@ -11,8 +11,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 取 Top 10
-        const rankRes = await fetch(`${KV_URL}/ZREVRANGE/champion_leaderboard/0/9/WITHSCORES`, {
+        // 取所有人（因为总共就32首歌，全部拉取非常快，方便前端计算总真实票数）
+        const rankRes = await fetch(`${KV_URL}/ZREVRANGE/champion_leaderboard/0/-1/WITHSCORES`, {
             headers: { Authorization: `Bearer ${KV_TOKEN}` }
         });
         const rankData = await rankRes.json();
