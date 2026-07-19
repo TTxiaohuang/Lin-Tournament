@@ -251,7 +251,18 @@ function App() {
     document.body.appendChild(tempDiv);
     
     try {
-      const canvas = await html2canvas(tempDiv, { scale: 1, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(tempDiv, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          clonedDoc.body.style.background = 'none';
+          const appContainer = clonedDoc.querySelector('.app-container');
+          if (appContainer) appContainer.style.display = 'none';
+          const glassOverlay = clonedDoc.querySelector('.glass-overlay');
+          if (glassOverlay) glassOverlay.style.display = 'none';
+        }
+      });
       const link = document.createElement('a');
       link.download = '林家谦锦标赛对阵图.png';
       link.href = canvas.toDataURL('image/png');
