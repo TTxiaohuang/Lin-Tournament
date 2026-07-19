@@ -140,12 +140,14 @@ function App() {
       return newHistory;
     });
 
-    // Call API without blocking UI
-    fetch('/api/vote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ winner: winnerSong })
-    }).catch(e => console.error(e));
+    // 仅当这是最终的决赛（只有一场对决）时，才调用 API 记录最终冠军
+    if (currentMatches.length === 1) {
+      fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winner: winnerSong })
+      }).catch(e => console.error(e));
+    }
 
     setNextRoundWinners(prevWinners => {
       const newWinners = [...prevWinners, winnerSong];
