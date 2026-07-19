@@ -12,6 +12,7 @@ function App() {
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [nickname, setNickname] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
+  const [totalVisitors, setTotalVisitors] = useState(0);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState('');
   const audioRef = useRef(null);
@@ -46,6 +47,14 @@ function App() {
     }
     // 'leaderboard' 状态不保存也不清除，保留上一个有效状态
   }, [gameState, currentMatches, nextRoundWinners, matchIndex, tournamentHistory]);
+
+  // 记录独立访客
+  useEffect(() => {
+    if (!localStorage.getItem('has_visited_tournament')) {
+      fetch('/api/visit', { method: 'POST' }).catch(() => {});
+      localStorage.setItem('has_visited_tournament', 'true');
+    }
+  }, []);
 
   // Eager load images non-blocking
   useEffect(() => {
@@ -294,7 +303,12 @@ function App() {
         return res.json();
       })
       .then(data => {
-        setLeaderboard(data);
+        if (Array.isArray(data)) {
+          setLeaderboard(data);
+        } else {
+          setLeaderboard(data.leaderboard || []);
+          setTotalVisitors(data.totalVisitors || 0);
+        }
         setLeaderboardLoading(false);
       })
       .catch(e => {
@@ -306,8 +320,9 @@ function App() {
 
   const renderLeaderboard = () => {
     const myChampion = nextRoundWinners[0] || (tournamentHistory.length > 0 ? tournamentHistory[tournamentHistory.length-1]?.matches?.[0]?.winner : null);
-    const totalVotes = leaderboard.reduce((sum, item) => sum + item.votes, 0);
     const maxVotes = leaderboard.length > 0 ? leaderboard[0].votes : 1;
+    // 使用所有 32 首歌计算真实总夺冠数，用于进度条比例
+    const totalChampionVotes = leaderboard.reduce((sum, item) => sum + item.votes, 0);
 
     // 排名徽章：圆形渐变背景 + 数字
     const RankBadge = ({ rank }) => {
@@ -360,7 +375,7 @@ function App() {
       const isTop1 = rank === 1;
       const isMine = item.songName === myChampion;
       const barWidth = (item.votes / maxVotes * 100);
-      const percent = totalVotes > 0 ? (item.votes / totalVotes * 100) : 0;
+      const percent = totalChampionVotes > 0 ? (item.votes / totalChampionVotes * 100) : 0;
 
       return (
         <div style={{
@@ -554,12 +569,12 @@ function App() {
             textShadow: '0 2px 12px rgba(0,0,0,0.4)'
           }}>网友们的选择</h2>
           <p style={{
-            color: 'rgba(255,255,255,0.55)',
-            fontSize: '0.8rem',
-            margin: 0,
+            color: 'rgba(255,255,255,0.7)',
+            fontSize: '0.95rem',
+            margin: '0',
             letterSpacing: '1px'
           }}>
-            {leaderboardLoading ? '正在统计...' : (totalVotes > 0 ? `共 ${totalVotes} 位网友参与` : '暂无数据')}
+            {leaderboardLoading ? '正在统计...' : (totalVisitors > 0 ? `共 ${totalVisitors} 位网友参与` : '暂无数据')}
           </p>
         </div>
 
@@ -862,6 +877,13 @@ function App() {
       {gameState === 'playing' && renderPlaying()}
       {gameState === 'result' && renderResult()}
       {gameState === 'leaderboard' && renderLeaderboard()}
+
+      {/* 隐藏的图片强制预加载层：确保在快速点击时图片无需等待网络请求 */}
+      <div id="image-preloader" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none', zIndex: -999 }}>
+        {Array.from(new Set(initialData.flatMap(m => [m.songA, m.songB]))).map(song => (
+          <img key={song} src={`/covers/${song}.webp`} alt="" />
+        ))}
+      </div>
     </>
   );
 }

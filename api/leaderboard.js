@@ -27,7 +27,14 @@ export default async function handler(req, res) {
             }
         }
 
-        res.status(200).json(leaderboard);
+        // 同时获取全站访问人次
+        const visitRes = await fetch(`${KV_URL}/GET/total_visitors`, {
+            headers: { Authorization: `Bearer ${KV_TOKEN}` }
+        });
+        const visitData = await visitRes.json();
+        const totalVisitors = parseInt(visitData.result) || 0;
+
+        res.status(200).json({ leaderboard, totalVisitors });
     } catch (error) {
         console.error("数据库请求彻底失败:", error);
         res.status(500).json({ error: '数据库读取失败' });
